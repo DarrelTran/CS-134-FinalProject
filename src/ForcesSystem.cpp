@@ -103,7 +103,6 @@ void ForcesSystem::updateShape(Shape* sh)
 	{
 		if ((forces[k]->applyOnce && !forces[k]->applied) || !forces[k]->applyOnce)
 		{
-			std::cout << "updating force with thrust: " << ((ThrustForce*)forces[k])->thrust << std::endl;
 			forces[k]->updateForce(sh);
 			forces[k]->applied = true;
 		}

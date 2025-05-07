@@ -99,40 +99,15 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 // incrementally update scene (animation)
 //
-void ofApp::update() {
-	/*
-	if (animationStarted)
-	{
-		ofVec3f min = lander.getSceneMin() + lander.getPosition();
-		ofVec3f max = lander.getSceneMax() + lander.getPosition();
-
-		Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
-
-		colBoxList.clear();
-		octree.intersect(bounds, octree.root, colBoxList);
-		if (colBoxList.size() < 10)
-		{
-			animationStarted = false;
-		}
-		else
-		{
-			glm::vec3 opp = lander.getPosition() - collisionDirection;
-			lander.setPosition(opp.x, opp.y, opp.z);
-		}
-	}
-
-	if (timeOn)
-	{
-		std::cout << std::fixed << std::setprecision(10);
-		std::cout << time << std::endl;
-	}
-	*/
-
+void ofApp::update() 
+{
 	lander.checkForMovement(keymap);
-	lander.update();
+	lander.update();	
+	lander.intersectTerrain(octree);
 }
 //--------------------------------------------------------------
-void ofApp::draw() {
+void ofApp::draw() 
+{
 
 	ofBackground(ofColor::black);
 
@@ -189,8 +164,8 @@ void ofApp::draw() {
 				// draw colliding boxes
 				//
 				ofSetColor(ofColor::red);
-				for (int i = 0; i < colBoxList.size(); i++) {
-					Octree::drawBox(colBoxList[i]);
+				for (int i = 0; i < lander.colBoxList.size(); i++) {
+					Octree::drawBox(lander.colBoxList[i]);
 				}
 				ofSetColor(ofColor::white);
 			}
@@ -473,7 +448,6 @@ bool ofApp::raySelectWithOctree(ofVec3f &pointRet) {
 	return pointSelected;
 }
 
-
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button) {
 
@@ -484,23 +458,15 @@ void ofApp::mouseDragged(int x, int y, int button) {
 	if (bInDrag) {
 		glm::mat4 transform = lander.getTransform();
 
-		lastLanderPos = lander.position;
-		glm::vec3 landerPos = lander.position;
+		lander.lastPos = lander.position;
 
-		glm::vec3 mousePos = getMousePointOnPlane(landerPos, cam.getZAxis());
+		glm::vec3 mousePos = getMousePointOnPlane(lander.position, cam.getZAxis());
 		glm::vec3 delta = mousePos - mouseLastPos;
 	
-		landerPos += delta;
-		lander.position = landerPos;
+		lander.position += delta;
 		mouseLastPos = mousePos;
-
-		ofVec3f min = lander.getSceneMin() + lander.position;
-		ofVec3f max = lander.getSceneMax() + lander.position;
-
-		Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
-
-		colBoxList.clear();
-		octree.intersect(bounds, octree.root, colBoxList);
+		
+		//lander.intersectTerrain(getIntersectionBounds(), octree);
 	}
 	else {
 		ofVec3f p;

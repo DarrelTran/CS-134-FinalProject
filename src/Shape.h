@@ -47,6 +47,6 @@ public:
 	Shape(ofColor color, float lifespan, float birthtime, float radius);
 	void integrate();
 	glm::vec3 getRotatedHeading();
-	virtual glm::mat4 getTransform();
+	virtual glm::mat4 getTransform();	
 	float age();	
 };

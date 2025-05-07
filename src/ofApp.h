@@ -35,14 +35,13 @@ class ofApp : public ofBaseApp{
 		void setCameraTarget();
 		bool mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point);
 		bool raySelectWithOctree(ofVec3f &pointRet);
-		glm::vec3 ofApp::getMousePointOnPlane(glm::vec3 p , glm::vec3 n);
+		glm::vec3 ofApp::getMousePointOnPlane(glm::vec3 p , glm::vec3 n);		
 
 		ofEasyCam cam;
 		ofxAssimpModelLoader mars;
 		ofLight light;
 		Box boundingBox;
 		Box testBox;
-		vector<Box> colBoxList;
 		bool bLanderSelected = false;
 		Octree octree;
 		TreeNode selectedNode;
@@ -74,10 +73,6 @@ class ofApp : public ofBaseApp{
 		std::vector<ofColor> colors;
 
 		const float selectionRange = 4.0;
-
-		glm::vec3 lastLanderPos;
-		bool animationStarted = false;
-		glm::vec3 collisionDirection;
 
 		float time;
 
