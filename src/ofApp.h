@@ -70,8 +70,6 @@ class ofApp : public ofBaseApp{
 		ofVec3f selectedPoint;
 		ofVec3f intersectPoint;
 
-		vector<Box> bboxList;
-
 		int maxLevels = 20;
 		std::vector<ofColor> colors;
 

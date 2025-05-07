@@ -24,11 +24,15 @@ void ofApp::setup(){
 	bCtrlKeyDown = false;
 	bTerrainSelected = true;
 //	ofSetWindowShape(1024, 768);
+
 	cam.setDistance(10);
 	cam.setNearClip(.1);
 	cam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
-	ofSetVerticalSync(true);
 	cam.disableMouseInput();
+	cam.setPosition({0, 10, 0});
+	cam.lookAt(glm::vec3(0, 0, 0));
+
+	ofSetVerticalSync(true);
 	ofEnableSmoothing();
 	ofEnableDepthTest();
 
@@ -163,7 +167,7 @@ void ofApp::draw() {
 					ofPushMatrix();
 					ofMultMatrix(lander.landerModel.getModelMatrix());
 					ofRotate(-90, 1, 0, 0);
-					Octree::drawBox(bboxList[i]);
+					Octree::drawBox(lander.bboxList[i]);
 					ofPopMatrix();
 				}
 			}
@@ -173,8 +177,8 @@ void ofApp::draw() {
 				ofPushMatrix();
 				ofMultMatrix(lander.getTransform());
 
-				ofVec3f min = lander.getSceneMin() + lander.position;
-				ofVec3f max = lander.getSceneMax() + lander.position;
+				ofVec3f min = lander.getSceneMin();
+				ofVec3f max = lander.getSceneMax();
 
 				Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 				ofSetColor(ofColor::white, 128);
@@ -478,6 +482,8 @@ void ofApp::mouseDragged(int x, int y, int button) {
 	if (cam.getMouseInputEnabled()) return;
 
 	if (bInDrag) {
+		glm::mat4 transform = lander.getTransform();
+
 		lastLanderPos = lander.position;
 		glm::vec3 landerPos = lander.position;
 
@@ -600,7 +606,7 @@ void ofApp::dragEvent2(ofDragInfo dragInfo) {
 
 		lander.loaded = true;
 		for (int i = 0; i < lander.landerModel.getMeshCount(); i++) {
-			bboxList.push_back(Octree::meshBounds(lander.landerModel.getMesh(i)));
+			lander.bboxList.push_back(Octree::meshBounds(lander.landerModel.getMesh(i)));
 		}
 
 		//cout << "Mesh Count: " << lander.getMeshCount() << endl;
@@ -627,9 +633,9 @@ void ofApp::dragEvent(ofDragInfo dragInfo) {
 		lander.landerModel.setScaleNormalization(false);
 		lander.position = { 0, 0, 0 };
 		//cout << "number of meshes: " << lander.getNumMeshes() << endl;
-		bboxList.clear();
+		lander.bboxList.clear();
 		for (int i = 0; i < lander.landerModel.getMeshCount(); i++) {
-			bboxList.push_back(Octree::meshBounds(lander.landerModel.getMesh(i)));
+			lander.bboxList.push_back(Octree::meshBounds(lander.landerModel.getMesh(i)));
 		}
 
 		//		lander.setRotation(1, 180, 1, 0, 0);
@@ -669,6 +675,8 @@ void ofApp::dragEvent(ofDragInfo dragInfo) {
 			// set up bounding box for lander while we are at it
 			//
 			lander.landerBounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+
+			lander.center = (min + max) / 2;
 		}
 	}
 

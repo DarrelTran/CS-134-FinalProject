@@ -23,6 +23,31 @@ Lander::Lander()
     angularAcceleration = 0;
 
 	forcesSystem.addForce(theThrustForce);
+	loadModel("geo/spaceship.obj");
+}
+
+void Lander::loadModel(std::string path)
+{
+	if (landerModel.loadModel(path))
+	{
+		landerModel.setScaleNormalization(false);
+		position = { 1, 1, 0 };
+
+		loaded = true;
+		for (int i = 0; i < landerModel.getMeshCount(); i++) 
+		{
+			bboxList.push_back(Octree::meshBounds(landerModel.getMesh(i)));
+		}
+
+		center = (getSceneMax() + getSceneMin()) / 2;
+
+		std::cout << "Loaded " << path << std::endl;
+	}
+	else
+	{
+		std::cout << "Can't load " << path << std::endl;
+		ofExit();
+	}
 }
 
 glm::vec3 Lander::getSceneMin()
@@ -90,10 +115,6 @@ void Lander::checkForMovement(const std::map<std::string, bool>& keymap)
 
 glm::mat4 Lander::getTransform()
 {
-	ofVec3f min = getSceneMin() + position;
-	ofVec3f max = getSceneMax() + position;
-	glm::vec3 center = (min + max) / 2;
-
 	glm::mat4 identity(1.0);
 
 	glm::mat4 T = glm::translate(position);
