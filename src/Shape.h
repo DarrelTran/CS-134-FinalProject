@@ -6,8 +6,8 @@
 class Shape
 {
 private:
-	void integrateLinearMotion(float dt);
-	void integrateAngularMotion(float dt);
+	virtual void integrateLinearMotion(float dt);
+	virtual void integrateAngularMotion(float dt);
 
 public:
 	glm::vec3 position;

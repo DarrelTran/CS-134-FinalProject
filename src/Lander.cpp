@@ -23,6 +23,7 @@ Lander::Lander()
     angularAcceleration = 0;
 
 	forcesSystem.addForce(theThrustForce);
+	forcesSystem.addForce(theGravityForce);
 	loadModel("geo/spaceship.obj");
 }
 
@@ -63,7 +64,8 @@ glm::vec3 Lander::getSceneMax()
 void Lander::update()
 {
 	lastPos = position;
-	//landerModel.setPosition(position.x, position.y, position.z);
+	bounceTerrain();
+	checkForMovement();
 	forcesSystem.updateShape(this);
 }
 
@@ -77,37 +79,37 @@ void Lander::draw()
 	ofPopMatrix();
 }
 
-void Lander::checkForMovement(const std::map<std::string, bool>& keymap)
+void Lander::checkForMovement()
 {
-	if (keymap.at("w"))
+	if (theKeymap->at("w") && !collisionForward)
 	{
 		theThrustForce->applied = false;
 		theThrustForce->thrust = getRotatedHeading() * thrustSpeed;
 	}
 
-	if (keymap.at("a"))
+	if (theKeymap->at("a"))
 	{
 		angularAcceleration = angularAcceleration + rotationSpeed;
 	}
 
-	if (keymap.at("s"))
+	if (theKeymap->at("s") && !collisionBackward)
 	{
 		theThrustForce->applied = false;
 		theThrustForce->thrust = getRotatedHeading() * -thrustSpeed;
 	}
 
-	if (keymap.at("d"))
+	if (theKeymap->at("d"))
 	{
 		angularAcceleration = angularAcceleration - rotationSpeed;
 	}
 
-	if (keymap.at("space"))
+	if (theKeymap->at("space") && !collisionUp)
 	{
 		theThrustForce->applied = false;
 		theThrustForce->thrust = glm::vec3(0, thrustSpeed, 0);
 	}
 
-	if (keymap.at("lcntrl"))
+	if (theKeymap->at("lcntrl") && !collisionDown)
 	{
 		theThrustForce->applied = false;
 		theThrustForce->thrust = glm::vec3(0, -thrustSpeed, 0);
@@ -171,30 +173,49 @@ void Lander::transformCorners(glm::vec3& transformMin, glm::vec3& transformMax)
 	transformMax = transformedMax;
 }
 
-void Lander::intersectTerrain(Octree& octree)
+void Lander::bounceTerrain()
 {
 	colBoxList.clear();
-	octree.intersect(getIntersectionBounds(), octree.root, colBoxList);
+	theOctree->intersect(getIntersectionBounds(), theOctree->root, colBoxList);
 
+	collisionUp = collisionDown = collisionForward = collisionBackward = false;
 	if (colBoxList.size() > 0)
 	{
+		theGravityForce->applyOnce = true;
 		resolveCollision();
+	}
+	else
+	{
+		theGravityForce->applyOnce = false;
 	}
 }
 
 void Lander::resolveCollision()
 {
-	/* P = (e + 1) * (-v.dot.n) * n
-	Where v is the velocity of the moving object
-	n is the normal at the contact point.
-	e is the material restitution in [0, 1] 
-	*/
+	glm::vec3 normal = position - lastPos;
 
-	glm::vec3 normal = glm::normalize(position - lastPos);
-	float restitution = 1.0f;
-	glm::vec3 impulse = (restitution + 1) * (glm::dot(-velocity, normal)) * normal;
+	if (glm::length(normal) < 0.001f)
+		normal = rotationAxis; // fallback
+	else
+		normal = glm::normalize(normal);
 
+	// > 0 = same direction = check if normal is "at" the specific axis 
+	// to prevent further "sinking" if user keeps going in a direction that will 
+	// penetrate the terrain
+	if (glm::dot(normal, rotationAxis) > 0) collisionDown = true;
+	if (glm::dot(normal, -rotationAxis) > 0) collisionUp = true;
+	if (glm::dot(normal, getRotatedHeading()) > 0) collisionBackward = true;
+	if (glm::dot(normal, -getRotatedHeading()) > 0) collisionForward = true;
+
+	float vDotN = glm::dot(-velocity, normal);
+	float restitution = 0.75f;
+	glm::vec3 impulse = (restitution + 1.0f) * vDotN * normal;
 	velocity = velocity + impulse;
+
+	if (keyWasPressed())
+	{
+		position = position + normal * 0.01f;
+	}
 }
 
 Box Lander::getIntersectionBounds()
@@ -206,4 +227,17 @@ Box Lander::getIntersectionBounds()
 	Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 
 	return bounds;
+}
+
+bool Lander::keyWasPressed()
+{
+	for (const auto& pair : *theKeymap) 
+	{
+		if (pair.second)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }

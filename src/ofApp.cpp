@@ -94,6 +94,9 @@ void ofApp::setup(){
 	keymap["d"] = false;
 	keymap["space"] = false;
 	keymap["lcntrl"] = false;
+
+	lander.theOctree = &octree;
+	lander.theKeymap = &keymap;
 }
  
 //--------------------------------------------------------------
@@ -101,9 +104,7 @@ void ofApp::setup(){
 //
 void ofApp::update() 
 {
-	lander.checkForMovement(keymap);
 	lander.update();	
-	lander.intersectTerrain(octree);
 }
 //--------------------------------------------------------------
 void ofApp::draw() 
