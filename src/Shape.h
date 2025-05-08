@@ -49,4 +49,5 @@ public:
 	glm::vec3 getRotatedHeading();
 	virtual glm::mat4 getTransform();	
 	float age();	
+	void draw();
 };

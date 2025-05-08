@@ -35,7 +35,8 @@ class ofApp : public ofBaseApp{
 		void setCameraTarget();
 		bool mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point);
 		bool raySelectWithOctree(ofVec3f &pointRet);
-		glm::vec3 ofApp::getMousePointOnPlane(glm::vec3 p , glm::vec3 n);		
+		glm::vec3 ofApp::getMousePointOnPlane(glm::vec3 p , glm::vec3 n);
+		void checkKeysPressed();
 
 		ofEasyCam cam;
 		ofxAssimpModelLoader mars;
@@ -78,4 +79,6 @@ class ofApp : public ofBaseApp{
 
 		Lander lander;
 		std::map<std::string, bool> keymap;
+		ofTexture shaderTexture;
+		ofShader shader;
 };

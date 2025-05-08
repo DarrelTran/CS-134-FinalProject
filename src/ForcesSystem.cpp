@@ -25,6 +25,7 @@ void ForcesSystem::checkAppliedForces()
 		if (f->applyOnce && f->applied && !f->reusable)
 		{
 			delete forces.at(i);
+			forces.at(i) = nullptr;
 			forces.erase(forces.begin() + i);
 		}
 	}
@@ -63,6 +64,7 @@ void ForcesSystem::deleteApplied()
 		if (forces.at(i)->applied)
 		{
 			delete forces.at(i);
+			forces.at(i) = nullptr;
 			forces.erase(forces.begin() + i);
 		}
 	}
@@ -111,6 +113,14 @@ void ForcesSystem::updateShape(Shape* sh)
 	sh->integrate();
 }
 
+void ForcesSystem::draw() 
+{
+	for (int i = 0; i < particles.size(); i++) 
+	{
+		particles[i].draw();
+	}
+}
+
 ThrustForce::ThrustForce(glm::vec3 thrust, bool once, bool reusable)
 {
 	applyOnce = once;
@@ -123,12 +133,13 @@ void ThrustForce::updateForce(Shape* sh)
 	sh->forces = sh->forces + thrust;
 }
 
-ImpulseRadialForce::ImpulseRadialForce(float mag, bool once, bool reusable, float magnitudeFactor)
+ImpulseRadialForce::ImpulseRadialForce(float mag, bool once, bool reusable, float magnitudeFactor, float height)
 {
 	applyOnce = once;
 	magnitude = mag;
 	this->magnitudeFactor = magnitudeFactor;
 	this->reusable = reusable;
+	this->height = height;
 }
 
 void ImpulseRadialForce::updateForce(Shape* sh)
@@ -136,8 +147,8 @@ void ImpulseRadialForce::updateForce(Shape* sh)
 	// we basically create a random direction for each particle
 	// the force is only added once after it is triggered.
 	//
-	ofVec3f dir = ofVec3f(ofRandom(-1, 1), ofRandom(-1, 1), 0);
-	sh->forces = sh->forces + dir.getNormalized() * magnitude * magnitudeFactor;
+	ofVec3f dir = ofVec3f(ofRandom(-1, 1), ofRandom(-height / 2.0, height / 2.0), ofRandom(-1, 1));
+	sh->forces += dir.getNormalized() * magnitude;
 }
 
 GravityForce::GravityForce(const ofVec3f& g, bool once, bool reusable)
@@ -168,4 +179,20 @@ void TurbulenceForce::updateForce(Shape* particle)
 	particle->forces.x += ofRandom(tmin.x, tmax.x);
 	particle->forces.y += ofRandom(tmin.y, tmax.y);
 	particle->forces.z += ofRandom(tmin.z, tmax.z);
+}
+
+CyclicForce::CyclicForce(float magnitude, bool once, bool reusable)
+{
+	this->magnitude = magnitude;
+	applyOnce = once;
+	this->reusable = reusable;
+}
+
+void CyclicForce::updateForce(Shape* particle) 
+{
+
+	ofVec3f position = particle->position;
+	ofVec3f norm = position.getNormalized();
+	ofVec3f dir = norm.cross(ofVec3f(0, 1, 0));
+	particle->forces += dir.getNormalized() * magnitude;
 }

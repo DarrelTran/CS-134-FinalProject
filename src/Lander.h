@@ -5,12 +5,18 @@
 #include "ofxAssimpModelLoader.h"
 #include "Octree.h"
 #include "Box.h"
+#include "ParticleEmitter.h"
 
 class Lander : public Shape 
 {
 	public:
 		Lander();
+		~Lander();
 		ForcesSystem forcesSystem;
+		ParticleEmitter engineEmitter;
+		// facing from the back
+		ParticleEmitter leftWingEmitter;
+		ParticleEmitter rightWingEmitter;
 		glm::vec3 center;
 		vector<Box> bboxList;
 		vector<Box> colBoxList;
@@ -20,6 +26,9 @@ class Lander : public Shape
 		Box landerBounds;
 		Octree* theOctree;
 		std::map<std::string, bool>* theKeymap;
+
+		float yThrustSpeed;
+		float zThrustSpeed;
 
 		bool collisionUp = false;
 		bool collisionDown = false;
@@ -41,10 +50,22 @@ class Lander : public Shape
 		void bounceTerrain();
 		Box getIntersectionBounds();
 	private:
-		ThrustForce* theThrustForce = new ThrustForce(glm::vec3(0, 0, 0), true, true);
-		GravityForce* theGravityForce = new GravityForce(glm::vec3(0, -1.62, 0), false, true);
+		ThrustForce* zThrustForce;
+		ThrustForce* yThrustForce;
+		GravityForce* theGravityForce;
+
+		TurbulenceForce* engineTurbForce;
+		ThrustForce* engineThrustForce;
+
+		TurbulenceForce* leftTurbForce;
+		ThrustForce* leftThrustForce;
+
+		TurbulenceForce* rightTurbForce;
+		ThrustForce* rightThrustForce;
+
 		void loadModel(std::string path);
 		void resolveCollision();
 		bool keyWasPressed();
-		bool isPressingIntoTerrain(const glm::vec3& normal);
+		void setupEmitters();
+		void updateEmitters();
 };
