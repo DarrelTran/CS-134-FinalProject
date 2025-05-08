@@ -40,8 +40,7 @@ void ofApp::setup(){
 	//
 	initLightingAndMaterials();
 
-	//mars.loadModel("geo/mars-low-5x-v2.obj");
-	mars.loadModel("geo/mars-low.obj");
+	mars.loadModel("geo/terrain.obj");
 	mars.setScaleNormalization(false);
 
 	// create sliders for testing

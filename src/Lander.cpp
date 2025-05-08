@@ -32,7 +32,7 @@ void Lander::loadModel(std::string path)
 	if (landerModel.loadModel(path))
 	{
 		landerModel.setScaleNormalization(false);
-		position = { 1, 5, 0 };
+		position = { 1, 15, 0 };
 
 		loaded = true;
 		for (int i = 0; i < landerModel.getMeshCount(); i++) 
@@ -192,29 +192,63 @@ void Lander::bounceTerrain()
 
 void Lander::resolveCollision()
 {
-	glm::vec3 normal = position - lastPos;
+	// lander's intersection bounds
+	Box boundsL = getIntersectionBounds();
+	glm::vec3 minL(boundsL.min().x(), boundsL.min().y(), boundsL.min().z());
+	glm::vec3 maxL(boundsL.max().x(), boundsL.max().y(), boundsL.max().z());
+	glm::vec3 centerL = (minL + maxL) / 2.0f;
+	glm::vec3 halfSizeL = (maxL - minL) / 2.0f;
 
-	if (glm::length(normal) < 0.001f)
-		normal = rotationAxis; // fallback
-	else
-		normal = glm::normalize(normal);
+	// first colliding terrain box
+	const Box& b = colBoxList[0];
+	glm::vec3 minB(b.min().x(), b.min().y(), b.min().z());
+	glm::vec3 maxB(b.max().x(), b.max().y(), b.max().z());
+	glm::vec3 centerB = (minB + maxB) / 2.0f;
+	glm::vec3 halfSizeB = (maxB - minB) / 2.0f;
 
-	// > 0 = same direction = check if normal is "at" the specific axis 
-	// to prevent further "sinking" if user keeps going in a direction that will 
-	// penetrate the terrain
-	if (glm::dot(normal, rotationAxis) > 0) collisionDown = true;
-	if (glm::dot(normal, -rotationAxis) > 0) collisionUp = true;
-	if (glm::dot(normal, getRotatedHeading()) > 0) collisionBackward = true;
-	if (glm::dot(normal, -getRotatedHeading()) > 0) collisionForward = true;
+	// how far apart the boxes are
+	glm::vec3 diff = centerL - centerB; 
+	// add half sizes to get spot where boxes touch
+	// positive coordinate = intersection
+	// smallest value = least penetration = best for collision resolvable 
+	glm::vec3 overlap = halfSizeL + halfSizeB - glm::abs(diff); 
 
-	float vDotN = glm::dot(-velocity, normal);
+	// collision normal along smallest penetration axis
+	glm::vec3 normalLocal = {0, 0, 0};
+	// x axis resolvable 
+	if (overlap.x < overlap.y && overlap.x < overlap.z) 
+	{
+		// set normal to left or right depending on diff's sign
+		normalLocal = glm::vec3(diff.x > 0 ? 1.0f : -1.0f, 0.0f, 0.0f);
+	}
+	// y axis resolvable
+	else if (overlap.y < overlap.z) 
+	{
+		normalLocal = glm::vec3(0.0f, diff.y > 0 ? 1.0f : -1.0f, 0.0f);
+	}
+	// z axis resolvable
+	else 
+	{
+		normalLocal = glm::vec3(0.0f, 0.0f, diff.z > 0 ? 1.0f : -1.0f);
+	}
+
+	collisionUp = glm::dot(normalLocal, glm::vec3(0.0f, -1.0f, 0.0f)) > 0.9f;
+	collisionDown = glm::dot(normalLocal, glm::vec3(0.0f, 1.0f, 0.0f)) > 0.9f;
+
+	glm::vec3 forwardDir = getRotatedHeading();
+	collisionForward = glm::dot(normalLocal, forwardDir) > 0.9f;
+	collisionBackward = glm::dot(normalLocal, -forwardDir) > 0.9f;
+
 	float restitution = 0.75f;
-	glm::vec3 impulse = (restitution + 1.0f) * vDotN * normal;
+	float vDotN = glm::dot(-velocity, normalLocal);
+	glm::vec3 impulse = (restitution + 1.0f) * vDotN * normalLocal;
 	velocity = velocity + impulse;
 
-	if (keyWasPressed())
+	// prevent sticking
+	if (keyWasPressed()) 
 	{
-		position = position + normal * 0.01f;
+		float correction = glm::max(glm::min(glm::min(overlap.x, overlap.y), overlap.z), 0.05f);
+		position = position + normalLocal * correction;
 	}
 }
 
