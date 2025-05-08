@@ -40,7 +40,7 @@ void ofApp::setup(){
 	//
 	initLightingAndMaterials();
 
-	mars.loadModel("geo/terrain.obj");
+	mars.loadModel("geo/mars-low.obj");
 	mars.setScaleNormalization(false);
 
 	// create sliders for testing
@@ -96,19 +96,64 @@ void ofApp::setup(){
 
 	lander.theOctree = &octree;
 	lander.theKeymap = &keymap;
+
+	ofDisableArbTex();
+
+	if (!ofLoadImage(shaderTexture, "images/dot.png"))
+	{
+		cout << "Particle Texture File: images/dot.png not found" << endl;
+		ofExit();
+	}
+
+// load the shader
+#ifdef TARGET_OPENGLES
+	shader.load("shaders_gles/shader");
+#else
+	shader.load("shaders/shader");
+#endif
+}
+
+void ofApp::checkKeysPressed()
+{
+	if (ofGetKeyPressed('w') || ofGetKeyPressed('W'))
+		keymap["w"] = true;
+	else
+		keymap["w"] = false;
+
+	if (ofGetKeyPressed('a') || ofGetKeyPressed('A'))
+		keymap["a"] = true;
+	else
+		keymap["a"] = false;
+	if (ofGetKeyPressed('s') || ofGetKeyPressed('S'))
+		keymap["s"] = true;
+	else
+		keymap["s"] = false;
+
+	if (ofGetKeyPressed('d') || ofGetKeyPressed('D'))
+		keymap["d"] = true;
+	else
+		keymap["d"] = false;
+
+	if (ofGetKeyPressed(' '))
+		keymap["space"] = true;
+	else
+		keymap["space"] = false;
+
+	if (ofGetKeyPressed(OF_KEY_LEFT_CONTROL))
+		keymap["lcntrl"] = true;
+	else
+		keymap["lcntrl"] = false;
 }
  
 //--------------------------------------------------------------
-// incrementally update scene (animation)
-//
 void ofApp::update() 
 {
-	lander.update();	
+	checkKeysPressed();
+	lander.update();
 }
 //--------------------------------------------------------------
 void ofApp::draw() 
 {
-
 	ofBackground(ofColor::black);
 
 	glDepthMask(false);
@@ -133,7 +178,6 @@ void ofApp::draw()
 		ofMesh mesh;
 		if (lander.loaded) {
 			lander.draw();
-			//lander.landerModel.drawFaces();
 			if (!bTerrainSelected) drawAxis(lander.position);
 			if (bDisplayBBoxes) {
 				ofNoFill();
@@ -216,6 +260,42 @@ void ofApp::draw()
 
 	ofPopMatrix();
 	cam.end();
+
+	lander.engineEmitter.loadVbo(ofFloatColor(0.76, 0.5, 0.1, 1.0));
+	lander.leftWingEmitter.loadVbo(ofFloatColor(0.2, 0.6, 1.0, 0.75));
+	lander.rightWingEmitter.loadVbo(ofFloatColor(0.4, 0.8, 1.0, 0.75));
+
+	glDepthMask(GL_FALSE);
+	ofSetColor(255, 100, 90);
+	// this makes everything look glowy :)
+	ofEnableBlendMode(OF_BLENDMODE_ADD);
+	ofEnablePointSprites();
+
+	// begin drawing in the camera
+	shader.begin();
+	cam.begin();
+
+	shaderTexture.bind();
+	lander.engineEmitter.vbo.draw(GL_POINTS, 0, (int)lander.engineEmitter.sys->particles.size());
+	lander.leftWingEmitter.vbo.draw(GL_POINTS, 0, (int)lander.leftWingEmitter.sys->particles.size());
+	lander.rightWingEmitter.vbo.draw(GL_POINTS, 0, (int)lander.rightWingEmitter.sys->particles.size());
+	shaderTexture.unbind();
+
+	cam.end();
+	shader.end();
+
+	ofDisablePointSprites();
+	ofDisableBlendMode();
+	ofEnableAlphaBlending();
+
+	// set back the depth mask
+	glDepthMask(GL_TRUE);
+
+	// draw screen data
+	string str;
+	str += "Frame Rate: " + std::to_string(ofGetFrameRate());
+	ofSetColor(ofColor::white);
+	ofDrawBitmapString(str, ofGetWindowWidth() - 170, 15);
 }
 
 
@@ -301,28 +381,6 @@ void ofApp::keyPressed(int key)
 		break;
 	case OF_KEY_DEL:
 		break;
-	case 'w':
-	case 'W':
-		keymap["w"] = true;
-		break;
-	case 'a':
-	case 'A':
-		keymap["a"] = true;
-		break;
-	case 's':
-	case 'S':
-		keymap["s"] = true;
-		break;
-	case 'd':
-	case 'D':
-		keymap["d"] = true;
-		break;
-	case ' ':
-		keymap["space"] = true;
-		break;
-	case OF_KEY_LEFT_CONTROL:
-		keymap["lcntrl"] = true;
-		break;
 	default:
 		break;
 	}
@@ -353,28 +411,6 @@ void ofApp::keyReleased(int key)
 		bCtrlKeyDown = false;
 		break;
 	case OF_KEY_SHIFT:
-		break;
-	case 'w':
-	case 'W':
-		keymap["w"] = false;
-		break;
-	case 'a':
-	case 'A':
-		keymap["a"] = false;
-		break;
-	case 's':
-	case 'S':
-		keymap["s"] = false;
-		break;
-	case 'd':
-	case 'D':
-		keymap["d"] = false;
-		break;
-	case ' ':
-		keymap["space"] = false;
-		break;
-	case OF_KEY_LEFT_CONTROL:
-		keymap["lcntrl"] = false;
 		break;
 	default:
 		break;

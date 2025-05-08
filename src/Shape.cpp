@@ -121,6 +121,12 @@ glm::vec3 Shape::getRotatedHeading()
 	return glm::normalize(glm::vec3(head));
 }
 
+void Shape::draw() 
+{
+	ofSetColor(ofMap(age(), 0, lifespan, 255, 10), 0, 0);
+	ofDrawSphere(position, radius);
+}
+
 glm::mat4 Shape::getTransform()
 {
 	glm::mat4 identity(1.0);
@@ -135,8 +141,7 @@ glm::mat4 Shape::getTransform()
 	return (translate * rotation * sc);
 }
 
-// TODO
 float Shape::age()
 {
-	return 0;
+	return (ofGetElapsedTimeMillis() - birthtime) / 1000.0;
 }
