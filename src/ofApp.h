@@ -65,7 +65,8 @@ class ofApp : public ofBaseApp{
 		bool bDisplayLeafNodes = false;
 		bool bDisplayOctree = false;
 		bool bDisplayBBoxes = false;
-		
+		bool bShowAGL = true;
+
 		bool bTerrainSelected;
 	
 		ofVec3f selectedPoint;

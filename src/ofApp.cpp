@@ -317,8 +317,11 @@ void ofApp::draw()
 	std::string frameRateStr = "Frame Rate: " + std::to_string(ofGetFrameRate());
 	ofSetColor(ofColor::white);
 	ofDrawBitmapString(frameRateStr, ofGetWindowWidth() - 170, 15);
-	std::string aglStr = "AGL: " + std::to_string(getAGL());
-	ofDrawBitmapString(aglStr, 15, 15);
+	if (bShowAGL)
+	{
+		std::string aglStr = "AGL: " + std::to_string(getAGL());
+		ofDrawBitmapString(aglStr, 15, 15);
+	}
 }
 
 // 
@@ -383,7 +386,7 @@ void ofApp::keyPressed(int key)
 		setCameraTarget();
 		break;
 	case 'u':
-		getAGL();
+		bShowAGL = !bShowAGL;
 		break;
 	case 'v':
 		togglePointsDisplay();
