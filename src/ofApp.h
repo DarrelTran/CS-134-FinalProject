@@ -26,7 +26,6 @@ class ofApp : public ofBaseApp{
 		void dragEvent2(ofDragInfo dragInfo);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
-		void drawAxis(ofVec3f);
 		void initLightingAndMaterials();
 		void savePicture();
 		void toggleWireframeMode();
@@ -38,8 +37,14 @@ class ofApp : public ofBaseApp{
 		glm::vec3 ofApp::getMousePointOnPlane(glm::vec3 p , glm::vec3 n);
 		void checkKeysPressed();
 		float getAGL();
+		void updateCameras();
 
-		ofEasyCam cam;
+		ofCamera* theCam;
+		ofEasyCam onboardCam;
+		ofEasyCam fixedCam;
+		// player can teleport to any selected point on terrain
+		ofEasyCam freeCam; 
+
 		ofxAssimpModelLoader mars;
 		ofLight light;
 		Box boundingBox;
@@ -77,10 +82,12 @@ class ofApp : public ofBaseApp{
 
 		const float selectionRange = 4.0;
 
-		float time;
-
 		Lander lander;
 		std::map<std::string, bool> keymap;
 		ofTexture shaderTexture;
 		ofShader shader;
+		ofLight landerLight;
+		ofLight landerLightFront;
+		// assumes that at least the first agl is a hit 
+		float oldAGL = 0;
 };

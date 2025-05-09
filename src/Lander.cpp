@@ -188,44 +188,55 @@ void Lander::draw()
 
 void Lander::checkForMovement()
 {
+	// Step 1: Reset thrusts each frame
+	zThrustForce->thrust = glm::vec3(0);
+	yThrustForce->thrust = glm::vec3(0);
+
+	bool appliedZ = true;
+	bool appliedY = true;
+
 	if (theKeymap->at("w") && !collisionForward)
 	{
-		zThrustForce->applied = false;
-		zThrustForce->thrust = getRotatedHeading() * zThrustSpeed;
+		appliedZ = false;
+		zThrustForce->thrust += getRotatedHeading() * zThrustSpeed;
 		engineEmitter.start();
-	}
-
-	if (theKeymap->at("a"))
-	{
-		angularAcceleration = angularAcceleration + rotationSpeed;
 	}
 
 	if (theKeymap->at("s") && !collisionBackward)
 	{
-		zThrustForce->applied = false;
-		zThrustForce->thrust = getRotatedHeading() * -zThrustSpeed;
+		appliedZ = false;
+		zThrustForce->thrust += getRotatedHeading() * -zThrustSpeed;
 		engineEmitter.start();
-	}
-
-	if (theKeymap->at("d"))
-	{
-		angularAcceleration = angularAcceleration - rotationSpeed;
 	}
 
 	if (theKeymap->at("space") && !collisionUp)
 	{
-		yThrustForce->applied = false;
-		yThrustForce->thrust = glm::vec3(0, yThrustSpeed, 0);
+		appliedY = false;
+		yThrustForce->thrust += glm::vec3(0, yThrustSpeed, 0);
 		leftWingEmitter.start();
 		rightWingEmitter.start();
 	}
 
-	if (theKeymap->at("lcntrl") && !collisionDown)
+	if (theKeymap->at("x") && !collisionDown)
 	{
-		yThrustForce->applied = false;
-		yThrustForce->thrust = glm::vec3(0, -yThrustSpeed, 0);
+		appliedY = false;
+		yThrustForce->thrust += glm::vec3(0, -yThrustSpeed, 0);
 		leftWingEmitter.start();
 		rightWingEmitter.start();
+	}
+
+	// hopefully fixes keys randomly getting stuck sometimes
+	zThrustForce->applied = appliedZ;
+	yThrustForce->applied = appliedY;
+
+	if (theKeymap->at("a"))
+	{
+		angularAcceleration += rotationSpeed;
+	}
+
+	if (theKeymap->at("d"))
+	{
+		angularAcceleration -= rotationSpeed;
 	}
 }
 
