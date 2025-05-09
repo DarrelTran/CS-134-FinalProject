@@ -40,7 +40,7 @@ void ofApp::setup(){
 	//
 	initLightingAndMaterials();
 
-	mars.loadModel("geo/mars-low.obj");
+	mars.loadModel("geo/moon-houdini.obj");
 	mars.setScaleNormalization(false);
 
 	// create sliders for testing
@@ -48,7 +48,7 @@ void ofApp::setup(){
 	gui.setup();
 	gui.add(numLevels.setup("Number of Octree Levels", 1, 1, maxLevels));
 	gui.add(timeOn.setup("Time", false));
-	bHide = false;
+	bHide = true;
 
 	//  Create Octree for testing.
 	//
@@ -111,6 +111,28 @@ void ofApp::setup(){
 #else
 	shader.load("shaders/shader");
 #endif
+}
+
+float ofApp::getAGL()
+{
+	float agl = -FLT_MAX;
+
+	Vector3 landerPosV3(lander.position.x, lander.position.y, lander.position.y);
+	Ray ray(landerPosV3, Vector3(0, -1, 0));
+
+	TreeNode intersectedNode;
+	bool intersected = octree.intersect(ray, octree.root, intersectedNode);
+
+	if (intersected)
+	{
+		glm::vec3 pointRet = octree.mesh.getVertex(intersectedNode.points[0]);
+		glm::vec3 landerPos(lander.position.x, lander.position.y, lander.position.y);
+
+		agl = glm::length(pointRet - landerPos);
+	}
+	else std::cout << "No agl intersection" << std::endl;
+
+	return agl;
 }
 
 void ofApp::checkKeysPressed()
@@ -292,12 +314,12 @@ void ofApp::draw()
 	glDepthMask(GL_TRUE);
 
 	// draw screen data
-	string str;
-	str += "Frame Rate: " + std::to_string(ofGetFrameRate());
+	std::string frameRateStr = "Frame Rate: " + std::to_string(ofGetFrameRate());
 	ofSetColor(ofColor::white);
-	ofDrawBitmapString(str, ofGetWindowWidth() - 170, 15);
+	ofDrawBitmapString(frameRateStr, ofGetWindowWidth() - 170, 15);
+	std::string aglStr = "AGL: " + std::to_string(getAGL());
+	ofDrawBitmapString(aglStr, 15, 15);
 }
-
 
 // 
 // Draw an XYZ axis in RGB at world (0,0,0) for reference.
@@ -361,6 +383,7 @@ void ofApp::keyPressed(int key)
 		setCameraTarget();
 		break;
 	case 'u':
+		getAGL();
 		break;
 	case 'v':
 		togglePointsDisplay();
@@ -400,20 +423,42 @@ void ofApp::togglePointsDisplay() {
 
 void ofApp::keyReleased(int key) 
 {
-
 	switch (key)
 	{
-	case OF_KEY_ALT:
-		cam.disableMouseInput();
-		bAltKeyDown = false;
-		break;
-	case OF_KEY_CONTROL:
-		bCtrlKeyDown = false;
-		break;
-	case OF_KEY_SHIFT:
-		break;
-	default:
-		break;
+		case OF_KEY_ALT:
+			cam.disableMouseInput();
+			bAltKeyDown = false;
+			break;
+		case OF_KEY_CONTROL:
+			bCtrlKeyDown = false;
+			break;
+		case OF_KEY_SHIFT:
+			break;
+		// sometimes keys would stick even when released
+		case 'w':
+		case 'W':
+			keymap["w"] = false;
+			break;
+		case 'a':
+		case 'A':
+			keymap["a"] = false;
+			break;
+		case 's':
+		case 'S':
+			keymap["s"] = false;
+			break;
+		case 'd':
+		case 'D':
+			keymap["d"] = false;
+			break;
+		case ' ':
+			keymap["space"] = false;
+			break;
+		case OF_KEY_LEFT_CONTROL:
+			keymap["lcntrl"] = false;
+			break;
+		default:
+			break;
 	}
 }
 

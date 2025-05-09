@@ -37,6 +37,7 @@ class ofApp : public ofBaseApp{
 		bool raySelectWithOctree(ofVec3f &pointRet);
 		glm::vec3 ofApp::getMousePointOnPlane(glm::vec3 p , glm::vec3 n);
 		void checkKeysPressed();
+		float getAGL();
 
 		ofEasyCam cam;
 		ofxAssimpModelLoader mars;

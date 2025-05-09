@@ -358,7 +358,7 @@ void Lander::resolveCollision()
 	velocity = velocity + impulse;
 
 	// prevent sticking
-	if (keyWasPressed()) 
+	if (glm::length(velocity) > 1.0f && keyWasPressed()) 
 	{
 		float correction = glm::max(glm::min(glm::min(overlap.x, overlap.y), overlap.z), 0.05f);
 		position = position + normalLocal * correction;
