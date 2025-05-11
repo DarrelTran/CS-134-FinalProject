@@ -31,7 +31,7 @@ void ofApp::setup(){
 	// setup rudimentary lighting 
 	initLightingAndMaterials();
 
-	mars.loadModel("geo/mars-low.obj");
+	mars.loadModel("geo/terrain.obj");
 	mars.setScaleNormalization(false);
 
 	// create sliders for testing
@@ -257,6 +257,27 @@ void ofApp::draw()
 		landerLightFront.lookAt(centerF + forwardO * 10.0f);
 
 		lander.draw();
+
+		float range = 100.0f;
+		glm::vec3 pos = lander.position;
+		Vector3 min(pos.x - range / 2, pos.y - range / 2, pos.z - range / 2);
+		Vector3 max(pos.x + range / 2, pos.y + range / 2, pos.z + range / 2);
+		Box rangeBox(min, max);
+
+		std::vector<Box> nearbyBoxes;
+		octree.intersect(rangeBox, octree.root, nearbyBoxes);
+
+		for (const Box& box : nearbyBoxes)
+		{
+			ofSetColor(ofColor::orange);
+			Octree::drawBox(box);
+		}
+
+		for (int i = 0; i < lander.colBoxList.size(); i++)
+		{
+			ofSetColor(ofColor::red);
+			Octree::drawBox(lander.colBoxList.at(i));
+		}
 	}
 
 	// highlight selected point (draw sphere around selected point)
@@ -325,7 +346,7 @@ void ofApp::draw()
 	if (bShowAGL)
 	{
 		std::string aglStr = "AGL: " + std::to_string(oldAGL);
-		ofDrawBitmapString(aglStr, 15, 15);
+		ofDrawBitmapString(lander.position, 15, 15);
 	}
 	std::string onboardCamStr = "Onboard camera (fps): Press 1";
 	ofDrawBitmapString(onboardCamStr, ofGetWindowWidth() - 300, 50);

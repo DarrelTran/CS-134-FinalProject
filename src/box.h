@@ -31,6 +31,10 @@ class Box {
 
 	Vector3 min() const { return parameters[0]; }
 	Vector3 max() const { return parameters[1]; }
+
+	void setMin(Vector3 min) { parameters[0] = min; }
+	void setMax(Vector3 max) { parameters[1] = max; }
+
 	const bool inside(const Vector3 &p) {
 		return ((p.x() >= parameters[0].x() && p.x() <= parameters[1].x()) &&
 		     	(p.y() >= parameters[0].y() && p.y() <= parameters[1].y()) &&

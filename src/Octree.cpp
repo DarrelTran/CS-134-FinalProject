@@ -99,8 +99,10 @@ int Octree::getMeshFacesInBox(const ofMesh & mesh, const vector<int>& faces,
 void Octree::subDivideBox8(const Box &box, vector<Box> & boxList) {
 	Vector3 min = box.parameters[0];
 	Vector3 max = box.parameters[1];
+
 	Vector3 size = max - min;
 	Vector3 center = size / 2 + min;
+
 	float xdist = (max.x() - min.x()) / 2;
 	float ydist = (max.y() - min.y()) / 2;
 	float zdist = (max.z() - min.z()) / 2;
@@ -180,11 +182,21 @@ void Octree::subdivide(const ofMesh& mesh, TreeNode& node, int numLevels, int le
 		if (!pointsInChild.empty()) 
 		{
 			child.points = pointsInChild;
-			node.children.push_back(child);
 
-			if (child.points.size() > 1)
+			if (!pointsInChild.empty())
 			{
-				subdivide(mesh, node.children.back(), numLevels, level + 1);
+				Vector3 sz = child.box.max() - child.box.min();
+				float maxBoxSize = 10.0f;
+
+				bool isTooLarge = (sz.x() > maxBoxSize || sz.y() > maxBoxSize || sz.z() > maxBoxSize);
+				bool hasMultiplePoints = child.points.size() > 1;
+
+				node.children.push_back(child);
+
+				if (hasMultiplePoints || isTooLarge)
+				{
+					subdivide(mesh, node.children.back(), numLevels, level + 1);
+				}
 			}
 		}
 	}

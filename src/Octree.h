@@ -13,7 +13,7 @@
 #include "box.h"
 #include "ray.h"
 
-
+const float MIN_BOX_SIZE = 5.0f;
 
 class TreeNode {
 public:

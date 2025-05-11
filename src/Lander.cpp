@@ -16,8 +16,8 @@ Lander::Lander()
 
     mass = 1;
 
-    yThrustSpeed = 10;
-	zThrustSpeed = 15;
+    yThrustSpeed = 20;
+	zThrustSpeed = 20;
 
     rotationSpeed = 200;
     angularVelocity = 0;
@@ -303,6 +303,7 @@ void Lander::bounceTerrain()
 	theOctree->intersect(getIntersectionBounds(), theOctree->root, colBoxList);
 
 	collisionUp = collisionDown = collisionForward = collisionBackward = false;
+
 	if (colBoxList.size() > 0)
 	{
 		theGravityForce->applyOnce = true;

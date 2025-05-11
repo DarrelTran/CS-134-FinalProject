@@ -77,7 +77,7 @@ class ofApp : public ofBaseApp{
 		ofVec3f selectedPoint;
 		ofVec3f intersectPoint;
 
-		int maxLevels = 20;
+		int maxLevels = 15;
 		std::vector<ofColor> colors;
 
 		const float selectionRange = 4.0;
