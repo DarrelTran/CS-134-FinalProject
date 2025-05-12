@@ -1,7 +1,7 @@
 #ifndef _RAY_H_
 #define _RAY_H_
 
-#include "vector3.h"
+#include "ofMain.h"
 
 /*
  * Ray class, for use with the optimized ray-box intersection test
@@ -16,13 +16,13 @@
 class Ray {
   public:
     Ray() { }
-    Ray(Vector3 o, Vector3 d) {
+    Ray(glm::vec3 o, glm::vec3 d) {
       origin = o;
       direction = d;
-      inv_direction = Vector3(1/d.x(), 1/d.y(), 1/d.z());
-      sign[0] = (inv_direction.x() < 0);
-      sign[1] = (inv_direction.y() < 0);
-      sign[2] = (inv_direction.z() < 0);
+      inv_direction = glm::vec3(1/d.x, 1/d.y, 1/d.z);
+      sign[0] = (inv_direction.x < 0);
+      sign[1] = (inv_direction.y < 0);
+      sign[2] = (inv_direction.z < 0);
     }
     Ray(const Ray &r) {
       origin = r.origin;
@@ -31,9 +31,9 @@ class Ray {
       sign[0] = r.sign[0]; sign[1] = r.sign[1]; sign[2] = r.sign[2];
     }
 
-    Vector3 origin;
-    Vector3 direction;
-    Vector3 inv_direction;
+    glm::vec3 origin;
+    glm::vec3 direction;
+    glm::vec3 inv_direction;
     int sign[3];
 };
 

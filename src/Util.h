@@ -3,7 +3,7 @@
 
 #include "ofMain.h"
 
-bool rayIntersectPlane(const ofVec3f &rayPoint, const ofVec3f &raydir, ofVec3f const &planePoint,
-	const ofVec3f &planeNorm, ofVec3f &point);
+bool rayIntersectPlane(const glm::vec3&rayPoint, const glm::vec3&raydir, glm::vec3 const &planePoint,
+	const glm::vec3&planeNorm, glm::vec3&point);
 
-ofVec3f reflectVector(const ofVec3f &v, const ofVec3f &normal);
+glm::vec3 reflectVector(const glm::vec3&v, const glm::vec3&normal);

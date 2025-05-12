@@ -27,7 +27,7 @@ void ofApp::setup(){
 	ofSetVerticalSync(true);
 	ofEnableSmoothing();
 	ofEnableDepthTest();
-	ofSetGlobalAmbientColor(ofColor(128));
+	//ofSetGlobalAmbientColor(ofColor(128));
 
 	// setup rudimentary lighting 
 	initLightingAndMaterials();
@@ -68,7 +68,7 @@ void ofApp::setup(){
 	octree.create(mars.getMesh(0), maxLevels);
 	octree.colors = colors;
 	
-	testBox = Box(Vector3(3, 3, 0), Vector3(5, 5, 2));
+	testBox = Box(glm::vec3(3, 3, 0), glm::vec3(5, 5, 2));
 
 	// DONT USE A SPECIAL KEY LIKE LCNTRL
 	// cant be pressed in parallel
@@ -116,7 +116,7 @@ void ofApp::updateCameras()
 {
 	glm::mat4 transform = lander.getTransform();
 
-	glm::vec3 offsetO = glm::vec3(0, 0, -5);
+	glm::vec3 offsetO = glm::vec3(0, 2, 1);
 	glm::vec3 camPosO = glm::vec3(transform * glm::vec4(offsetO, 1.0f));
 	glm::vec3 centerO = glm::vec3(transform * glm::vec4(lander.center, 1.0f));
 	glm::vec3 forwardO = glm::normalize(glm::vec3(transform * glm::vec4(0, 0, -1, 0)));
@@ -140,8 +140,7 @@ float ofApp::getAGL()
 {
 	float agl = FLT_MAX;
 
-	Vector3 landerPosV3(lander.position.x, lander.position.y, lander.position.y);
-	Ray ray(landerPosV3, Vector3(0, -1, 0));
+	Ray ray(lander.position, glm::vec3(0, -1, 0));
 
 	TreeNode intersectedNode;
 	bool intersected = octree.intersect(ray, octree.root, intersectedNode);
@@ -149,7 +148,7 @@ float ofApp::getAGL()
 	if (intersected)
 	{
 		glm::vec3 pointRet = octree.mesh.getVertex(intersectedNode.points[0]);
-		glm::vec3 landerPos(lander.position.x, lander.position.y, lander.position.y);
+		glm::vec3 landerPos(lander.position.x, lander.position.y, lander.position.z);
 
 		agl = glm::length(pointRet - landerPos);
 	}
@@ -233,6 +232,25 @@ void ofApp::update()
 	updateCameras();
 	oldAGL = getAGL();
 }
+
+void ofApp::drawNearby()
+{
+	float range = 100.0f;
+	glm::vec3 pos = lander.position;
+	glm::vec3 min(pos.x - range / 2, pos.y - range / 2, pos.z - range / 2);
+	glm::vec3 max(pos.x + range / 2, pos.y + range / 2, pos.z + range / 2);
+	Box rangeBox(min, max);
+
+	std::vector<Box> nearbyBoxes;
+	octree.intersect(rangeBox, octree.root, nearbyBoxes);
+
+	for (const Box& box : nearbyBoxes)
+	{
+		ofSetColor(ofColor::orange);
+		Octree::drawBox(box);
+	}
+}
+
 //--------------------------------------------------------------
 void ofApp::draw() 
 {
@@ -248,20 +266,7 @@ void ofApp::draw()
 	{
 		lander.draw();
 
-		float range = 100.0f;
-		glm::vec3 pos = lander.position;
-		Vector3 min(pos.x - range / 2, pos.y - range / 2, pos.z - range / 2);
-		Vector3 max(pos.x + range / 2, pos.y + range / 2, pos.z + range / 2);
-		Box rangeBox(min, max);
-
-		std::vector<Box> nearbyBoxes;
-		octree.intersect(rangeBox, octree.root, nearbyBoxes);
-
-		for (const Box& box : nearbyBoxes)
-		{
-			ofSetColor(ofColor::orange);
-			Octree::drawBox(box);
-		}
+		drawNearby();
 
 		for (int i = 0; i < lander.colBoxList.size(); i++)
 		{
@@ -333,26 +338,28 @@ void ofApp::draw()
 		std::string aglStr = "AGL: " + std::to_string(oldAGL);
 		ofDrawBitmapString(aglStr, 15, 15);
 	}
-	std::string onboardCamStr = "Onboard camera: Press 1";
-	ofDrawBitmapString(onboardCamStr, ofGetWindowWidth() - 350, 50);
+	std::string onboardCamStr = "Onboard camera: 1";
+	ofDrawBitmapString(onboardCamStr, ofGetWindowWidth() - 300, 50);
 
-	std::string fixedCamStr = "Fixed camera: Press 2";
-	ofDrawBitmapString(fixedCamStr, ofGetWindowWidth() - 350, 60);
+	std::string fixedCamStr = "Fixed camera: 2";
+	ofDrawBitmapString(fixedCamStr, ofGetWindowWidth() - 300, 60);
 
-	std::string freeCamStr = "Free camera: Press 3";
-	ofDrawBitmapString(freeCamStr, ofGetWindowWidth() - 350, 70);
-	std::string freeCamStr1 = "Free camera left: Press a";
-	ofDrawBitmapString(freeCamStr1, ofGetWindowWidth() - 350, 80);
-	std::string freeCamStr2 = "Free camera right: Press d";
-	ofDrawBitmapString(freeCamStr2, ofGetWindowWidth() - 350, 90);
-	std::string freeCamStr3 = "Free camera up: Press w";
-	ofDrawBitmapString(freeCamStr3, ofGetWindowWidth() - 350, 100);
-	std::string freeCamStr4 = "Free camera down: Press s";
-	ofDrawBitmapString(freeCamStr4, ofGetWindowWidth() - 350, 110);
+	std::string freeCamStr = "Free camera: 3";
+	ofDrawBitmapString(freeCamStr, ofGetWindowWidth() - 300, 70);
+	std::string freeCamStr1 = "Free camera left: A";
+	ofDrawBitmapString(freeCamStr1, ofGetWindowWidth() - 300, 80);
+	std::string freeCamStr2 = "Free camera right: D";
+	ofDrawBitmapString(freeCamStr2, ofGetWindowWidth() - 300, 90);
+	std::string freeCamStr3 = "Free camera up: W";
+	ofDrawBitmapString(freeCamStr3, ofGetWindowWidth() - 300, 100);
+	std::string freeCamStr4 = "Free camera down: S";
+	ofDrawBitmapString(freeCamStr4, ofGetWindowWidth() - 300, 110);
 	std::string freeCamStr5 = "Free camera rotate: Mouse";
-	ofDrawBitmapString(freeCamStr5, ofGetWindowWidth() - 350, 120);
+	ofDrawBitmapString(freeCamStr5, ofGetWindowWidth() - 300, 120);
 	std::string freeCamStr6 = "Free camera teleport: Click + q";
-	ofDrawBitmapString(freeCamStr6, ofGetWindowWidth() - 350, 130);
+	ofDrawBitmapString(freeCamStr6, ofGetWindowWidth() - 300, 130);
+	std::string freeCamStr7 = "Free camera Enable/Disable drag: E";
+	ofDrawBitmapString(freeCamStr7, ofGetWindowWidth() - 300, 140);
 }
 
 void ofApp::keyPressed(int key) 
@@ -499,8 +506,8 @@ void ofApp::mousePressed(int x, int y, int button)
 		ofVec3f min = lander.getSceneMin() + lander.position;
 		ofVec3f max = lander.getSceneMax() + lander.position;
 
-		Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
-		bool hit = bounds.intersect(Ray(Vector3(origin.x, origin.y, origin.z), Vector3(mouseDir.x, mouseDir.y, mouseDir.z)), 0, 10000);
+		Box bounds = Box(glm::vec3(min.x, min.y, min.z), glm::vec3(max.x, max.y, max.z));
+		bool hit = bounds.intersect(Ray(glm::vec3(origin.x, origin.y, origin.z), glm::vec3(mouseDir.x, mouseDir.y, mouseDir.z)), 0, 10000);
 		if (hit && landerDraggable) {
 			bLanderSelected = true;
 			mouseDownPos = getMousePointOnPlane(lander.position, theCam->getZAxis());
@@ -514,7 +521,7 @@ void ofApp::mousePressed(int x, int y, int button)
 
 	if (theCam == &freeCam)
 	{
-		ofVec3f p;
+		glm::vec3 p;
 
 		if (raySelectWithOctree(p))
 		{
@@ -529,13 +536,13 @@ void ofApp::mousePressed(int x, int y, int button)
 	}
 }
 
-bool ofApp::raySelectWithOctree(ofVec3f &pointRet) {
+bool ofApp::raySelectWithOctree(glm::vec3&pointRet) {
 	ofVec3f mouse(mouseX, mouseY);
 	ofVec3f rayPoint = theCam->screenToWorld(mouse);
 	ofVec3f rayDir = rayPoint - theCam->getPosition();
 	rayDir.normalize();
-	Ray ray = Ray(Vector3(rayPoint.x, rayPoint.y, rayPoint.z),
-		Vector3(rayDir.x, rayDir.y, rayDir.z));
+	Ray ray = Ray(glm::vec3(rayPoint.x, rayPoint.y, rayPoint.z),
+		glm::vec3(rayDir.x, rayDir.y, rayDir.z));
 
 	pointSelected = octree.intersect(ray, octree.root, selectedNode);
 	
@@ -563,7 +570,7 @@ void ofApp::mouseDragged(int x, int y, int button)
 		//lander.intersectTerrain(getIntersectionBounds(), octree);
 	}
 	else {
-		ofVec3f p;
+		glm::vec3 p;
 		raySelectWithOctree(p);
 	}
 }
@@ -656,8 +663,8 @@ void ofApp::savePicture() {
 //
 void ofApp::dragEvent2(ofDragInfo dragInfo) {
 
-	ofVec3f point;
-	mouseIntersectPlane(ofVec3f(0, 0, 0), theCam->getZAxis(), point);
+	glm::vec3 point;
+	mouseIntersectPlane(glm::vec3(0, 0, 0), theCam->getZAxis(), point);
 	if (lander.landerModel.loadModel(dragInfo.files[0])) {
 		lander.landerModel.setScaleNormalization(false);
 		//		lander.setScale(.1, .1, .1);
@@ -674,11 +681,11 @@ void ofApp::dragEvent2(ofDragInfo dragInfo) {
 	else; //cout << "Error: Can't load model" << dragInfo.files[0] << endl;
 }
 
-bool ofApp::mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point) {
-	ofVec2f mouse(mouseX, mouseY);
-	ofVec3f rayPoint = theCam->screenToWorld(glm::vec3(mouseX, mouseY, 0));
-	ofVec3f rayDir = rayPoint - theCam->getPosition();
-	rayDir.normalize();
+bool ofApp::mouseIntersectPlane(glm::vec3 planePoint, glm::vec3 planeNorm, glm::vec3& point) {
+	glm::vec2 mouse(mouseX, mouseY);
+	glm::vec3 rayPoint = theCam->screenToWorld(glm::vec3(mouseX, mouseY, 0));
+	glm::vec3 rayDir = rayPoint - theCam->getPosition();
+	rayDir = glm::normalize(rayDir);
 	return (rayIntersectPlane(rayPoint, rayDir, planePoint, planeNorm, point));
 }
 
@@ -734,7 +741,7 @@ void ofApp::dragEvent(ofDragInfo dragInfo) {
 
 			// set up bounding box for lander while we are at it
 			//
-			lander.landerBounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+			lander.landerBounds = Box(glm::vec3(min.x, min.y, min.z), glm::vec3(max.x, max.y, max.z));
 
 			lander.center = (min + max) / 2;
 		}

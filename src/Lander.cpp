@@ -369,15 +369,15 @@ void Lander::resolveCollision()
 {
 	// lander's intersection bounds
 	Box boundsL = getIntersectionBounds();
-	glm::vec3 minL(boundsL.min().x(), boundsL.min().y(), boundsL.min().z());
-	glm::vec3 maxL(boundsL.max().x(), boundsL.max().y(), boundsL.max().z());
+	glm::vec3 minL(boundsL.min().x, boundsL.min().y, boundsL.min().z);
+	glm::vec3 maxL(boundsL.max().x, boundsL.max().y, boundsL.max().z);
 	glm::vec3 centerL = (minL + maxL) / 2.0f;
 	glm::vec3 halfSizeL = (maxL - minL) / 2.0f;
 
 	// first colliding terrain box
 	const Box& b = colBoxList[0];
-	glm::vec3 minB(b.min().x(), b.min().y(), b.min().z());
-	glm::vec3 maxB(b.max().x(), b.max().y(), b.max().z());
+	glm::vec3 minB(b.min().x, b.min().y, b.min().z);
+	glm::vec3 maxB(b.max().x, b.max().y, b.max().z);
 	glm::vec3 centerB = (minB + maxB) / 2.0f;
 	glm::vec3 halfSizeB = (maxB - minB) / 2.0f;
 
@@ -433,7 +433,7 @@ Box Lander::getIntersectionBounds()
 	glm::vec3 max = getSceneMax();
 	transformCorners(min, max);
 
-	Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+	Box bounds = Box(glm::vec3(min.x, min.y, min.z), glm::vec3(max.x, max.y, max.z));
 
 	return bounds;
 }

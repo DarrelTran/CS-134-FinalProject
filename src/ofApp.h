@@ -32,8 +32,8 @@ class ofApp : public ofBaseApp{
 		void togglePointsDisplay();
 		void toggleSelectTerrain();
 		void setCameraTarget();
-		bool mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point);
-		bool raySelectWithOctree(ofVec3f &pointRet);
+		bool mouseIntersectPlane(glm::vec3 planePoint, glm::vec3 planeNorm, glm::vec3&point);
+		bool raySelectWithOctree(glm::vec3& pointRet);
 		glm::vec3 ofApp::getMousePointOnPlane(glm::vec3 p , glm::vec3 n);
 		void checkKeysPressed();
 		float getAGL();
@@ -74,8 +74,8 @@ class ofApp : public ofBaseApp{
 
 		bool bTerrainSelected;
 	
-		ofVec3f selectedPoint;
-		ofVec3f intersectPoint;
+		glm::vec3 selectedPoint;
+		glm::vec3 intersectPoint;
 
 		int maxLevels = 20;
 		std::vector<ofColor> colors;
@@ -89,8 +89,11 @@ class ofApp : public ofBaseApp{
 		// assumes that at least the first agl is a hit 
 		float oldAGL = 0;
 		bool teleportPointSelected = false;
-		ofVec3f teleportPoint;
+		glm::vec3 teleportPoint;
 		bool landerDraggable = false;
 
 		ofLight environmentLight;
+
+		// DELETE ME LATER 
+		void drawNearby();
 };

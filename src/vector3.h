@@ -5,14 +5,35 @@
 
 class Vector3 {
   public:
-    Vector3() { };
-    Vector3(float x, float y, float z) { d[0] = x; d[1] = y; d[2] = z; }
-    Vector3(const Vector3 &v)
-      { d[0] = v.d[0]; d[1] = v.d[1]; d[2] = v.d[2]; }
+    float x;
+    float y;
+    float z;
 
-    float x() const { return d[0]; }
-    float y() const { return d[1]; }
-    float z() const { return d[2]; }
+    Vector3() { };
+    Vector3(float x, float y, float z) 
+    { 
+        d[0] = x; 
+        d[1] = y; 
+        d[2] = z; 
+
+        this->x = x;
+        this->y = y;
+        this->z = z;
+    }
+    Vector3(const Vector3 &v)
+    { 
+        d[0] = v.d[0]; 
+        d[1] = v.d[1]; 
+        d[2] = v.d[2]; 
+
+        this->x = v.d[0];
+        this->y = v.d[1];
+        this->z = v.d[2];
+    }
+
+    float gX() const { return d[0]; }
+    float gY() const { return d[1]; }
+    float gZ() const { return d[2]; }
 
     float operator[](int i) const { return d[i]; }
     

@@ -17,14 +17,14 @@
 //draw a box from a "Box" class  
 //
 void Octree::drawBox(const Box &box) {
-	Vector3 min = box.parameters[0];
-	Vector3 max = box.parameters[1];
-	Vector3 size = max - min;
-	Vector3 center = size / 2 + min;
-	ofVec3f p = ofVec3f(center.x(), center.y(), center.z());
-	float w = size.x();
-	float h = size.y();
-	float d = size.z();
+	glm::vec3 min = box.parameters[0];
+	glm::vec3 max = box.parameters[1];
+	glm::vec3 size = max - min;
+	glm::vec3 center = size / 2 + min;
+	glm::vec3 p = glm::vec3(center.x, center.y, center.z);
+	float w = size.x;
+	float h = size.y;
+	float d = size.z;
 	ofDrawBox(p, w, h, d);
 }
 
@@ -49,7 +49,7 @@ Box Octree::meshBounds(const ofMesh & mesh) {
 	}
 	//cout << "vertices: " << n << endl;
 //	cout << "min: " << min << "max: " << max << endl;
-	return Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+	return Box(glm::vec3(min.x, min.y, min.z), glm::vec3(max.x, max.y, max.z));
 }
 
 // getMeshPointsInBox:  return an array of indices to points in mesh that are contained 
@@ -61,7 +61,7 @@ int Octree::getMeshPointsInBox(const ofMesh & mesh, const vector<int>& points,
 	int count = 0;
 	for (int i = 0; i < points.size(); i++) {
 		ofVec3f v = mesh.getVertex(points[i]);
-		if (box.inside(Vector3(v.x, v.y, v.z))) {
+		if (box.inside(glm::vec3(v.x, v.y, v.z))) {
 			count++;
 			pointsRtn.push_back(points[i]);
 		}
@@ -78,14 +78,14 @@ int Octree::getMeshFacesInBox(const ofMesh & mesh, const vector<int>& faces,
 	int count = 0;
 	for (int i = 0; i < faces.size(); i++) {
 		ofMeshFace face = mesh.getFace(faces[i]);
-		ofVec3f v[3];
+		glm::vec3 v[3];
 		v[0] = face.getVertex(0);
 		v[1] = face.getVertex(1);
 		v[2] = face.getVertex(2);
-		Vector3 p[3];
-		p[0] = Vector3(v[0].x, v[0].y, v[0].z);
-		p[1] = Vector3(v[1].x, v[1].y, v[1].z);
-		p[2] = Vector3(v[2].x, v[2].y, v[2].z);
+		glm::vec3 p[3];
+		p[0] = glm::vec3(v[0].x, v[0].y, v[0].z);
+		p[1] = glm::vec3(v[1].x, v[1].y, v[1].z);
+		p[2] = glm::vec3(v[2].x, v[2].y, v[2].z);
 		if (box.inside(p,3)) {
 			count++;
 			facesRtn.push_back(faces[i]);
@@ -97,24 +97,24 @@ int Octree::getMeshFacesInBox(const ofMesh & mesh, const vector<int>& faces,
 //  Subdivide a Box into eight(8) equal size boxes, return them in boxList;
 //
 void Octree::subDivideBox8(const Box &box, vector<Box> & boxList) {
-	Vector3 min = box.parameters[0];
-	Vector3 max = box.parameters[1];
+	glm::vec3 min = box.parameters[0];
+	glm::vec3 max = box.parameters[1];
 
-	Vector3 size = max - min;
-	Vector3 center = size / 2 + min;
+	glm::vec3 size = max - min;
+	glm::vec3 center = size / 2 + min;
 
-	float xdist = (max.x() - min.x()) / 2;
-	float ydist = (max.y() - min.y()) / 2;
-	float zdist = (max.z() - min.z()) / 2;
-	Vector3 h = Vector3(0, ydist, 0);
+	float xdist = (max.x - min.x) / 2;
+	float ydist = (max.y - min.y) / 2;
+	float zdist = (max.z - min.z) / 2;
+	glm::vec3 h = glm::vec3(0, ydist, 0);
 
 	//  generate ground floor
 	//
 	Box b[8];
 	b[0] = Box(min, center);
-	b[1] = Box(b[0].min() + Vector3(xdist, 0, 0), b[0].max() + Vector3(xdist, 0, 0));
-	b[2] = Box(b[1].min() + Vector3(0, 0, zdist), b[1].max() + Vector3(0, 0, zdist));
-	b[3] = Box(b[2].min() + Vector3(-xdist, 0, 0), b[2].max() + Vector3(-xdist, 0, 0));
+	b[1] = Box(b[0].min() + glm::vec3(xdist, 0, 0), b[0].max() + glm::vec3(xdist, 0, 0));
+	b[2] = Box(b[1].min() + glm::vec3(0, 0, zdist), b[1].max() + glm::vec3(0, 0, zdist));
+	b[3] = Box(b[2].min() + glm::vec3(-xdist, 0, 0), b[2].max() + glm::vec3(-xdist, 0, 0));
 
 	boxList.clear();
 	for (int i = 0; i < 4; i++)
@@ -131,8 +131,8 @@ void Octree::subDivideBox8(const Box &box, vector<Box> & boxList) {
 void Octree::create(const ofMesh & geo, int numLevels) {
 	// initialize octree structure
 	//
+	
 	mesh = geo;
-	int level = 0;
 	root.box = meshBounds(mesh);
 	if (!bUseFaces) {
 		for (int i = 0; i < mesh.getNumVertices(); i++) {
@@ -142,12 +142,12 @@ void Octree::create(const ofMesh & geo, int numLevels) {
 	else {
 		// need to load face vertices here
 		//
+
 	}
 
 	// recursively buid octree
 	//
-	level++;
-    subdivide(mesh, root, numLevels, level);
+    subdivide(mesh, root, numLevels, 1);
 }
 
 
@@ -179,25 +179,21 @@ void Octree::subdivide(const ofMesh& mesh, TreeNode& node, int numLevels, int le
 		vector<int> pointsInChild;
 		getMeshPointsInBox(mesh, node.points, child.box, pointsInChild);
 
-		if (!pointsInChild.empty()) 
+		if (!pointsInChild.empty())
 		{
 			child.points = pointsInChild;
+			node.children.push_back(child);
 
-			if (!pointsInChild.empty())
+			glm::vec3 sz = child.box.max() - child.box.min();
+			float maxBoxSize = 10.0f;
+
+			bool isTooLarge = (sz.x > maxBoxSize || sz.z > maxBoxSize);
+			bool hasMultiplePoints = child.points.size() > 1;
+
+			if (hasMultiplePoints || isTooLarge)
 			{
-				Vector3 sz = child.box.max() - child.box.min();
-				float maxBoxSize = 10.0f;
-
-				bool isTooLarge = (sz.x() > maxBoxSize || sz.y() > maxBoxSize || sz.z() > maxBoxSize);
-				bool hasMultiplePoints = child.points.size() > 1;
-
-				node.children.push_back(child);
-
-				if (hasMultiplePoints || isTooLarge)
-				{
-					subdivide(mesh, node.children.back(), numLevels, level + 1);
-				}
-			}
+				subdivide(mesh, node.children.back(), numLevels, level + 1);
+			} 
 		}
 	}
 }
