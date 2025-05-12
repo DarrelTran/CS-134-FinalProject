@@ -77,7 +77,7 @@ class ofApp : public ofBaseApp{
 		ofVec3f selectedPoint;
 		ofVec3f intersectPoint;
 
-		int maxLevels = 15;
+		int maxLevels = 20;
 		std::vector<ofColor> colors;
 
 		const float selectionRange = 4.0;
@@ -86,8 +86,11 @@ class ofApp : public ofBaseApp{
 		std::map<std::string, bool> keymap;
 		ofTexture shaderTexture;
 		ofShader shader;
-		ofLight landerLight;
-		ofLight landerLightFront;
 		// assumes that at least the first agl is a hit 
 		float oldAGL = 0;
+		bool teleportPointSelected = false;
+		ofVec3f teleportPoint;
+		bool landerDraggable = false;
+
+		ofLight environmentLight;
 };

@@ -1,4 +1,4 @@
-#include "Lander.h"
+﻿#include "Lander.h"
 
 Lander::Lander()
 {
@@ -34,65 +34,93 @@ Lander::Lander()
 	forcesSystem.addForce(theGravityForce);
 
 	setupEmitters();
+
+	pointLight.setPointLight();
+	pointLight.setDiffuseColor(ofColor::white);
+	pointLight.setSpecularColor(ofColor::white);
+	pointLight.setAttenuation(0.025f, 0.025f, 0.01f);
+	pointLight.setScale(1);
+	pointLight.enable();
+
+	spotLight.setSpotlight();
+	spotLight.setDiffuseColor(ofColor::white);
+	spotLight.setSpecularColor(ofColor::white);
+	spotLight.setSpotlightCutOff(15);
+	spotLight.setSpotConcentration(60);
+	spotLight.setScale(1);
+	spotLight.enable();
 }
 
 void Lander::setupEmitters()
 {
-	engineTurbForce = new TurbulenceForce(ofVec3f(-20, -20, -20), ofVec3f(20, 20, 20), false, true);
-	engineThrustForce = new ThrustForce(ofVec3f(0, 0, 0), false, true);
+	leftEngineTurbForce = new TurbulenceForce(ofVec3f(-20, -20, -20), ofVec3f(20, 20, 20), false, true);
+	leftEngineThrustForce = new ThrustForce(ofVec3f(0, 0, 0), false, true);
 
-	leftTurbForce = new TurbulenceForce(ofVec3f(-20, -20, -20), ofVec3f(20, 20, 20), false, true);
-	leftThrustForce = new ThrustForce(ofVec3f(0, 0, 0), false, true);
+	rightEngineTurbForce = new TurbulenceForce(ofVec3f(-20, -20, -20), ofVec3f(20, 20, 20), false, true);
+	rightEngineThrustForce = new ThrustForce(ofVec3f(0, 0, 0), false, true);
 
-	rightTurbForce = new TurbulenceForce(ofVec3f(-20, -20, -20), ofVec3f(20, 20, 20), false, true);
-	rightThrustForce = new ThrustForce(ofVec3f(0, 0, 0), false, true);
+	hoverTurbForce = new TurbulenceForce(ofVec3f(-20, -20, -20), ofVec3f(20, 20, 20), false, true);
+	hoverThrustForce = new ThrustForce(ofVec3f(0, 0, 0), false, true);
 
-	engineEmitter.init();
-	engineEmitter.sys->addForce(engineTurbForce);
-	engineEmitter.sys->addForce(engineThrustForce);
+	leftEngineEmitter.init();
+	leftEngineEmitter.sys->addForce(leftEngineTurbForce);
+	leftEngineEmitter.sys->addForce(leftEngineThrustForce);
 
-	engineEmitter.setVelocity(ofVec3f(0, 0, 0));
-	engineEmitter.setOneShot(true);
-	engineEmitter.setEmitterType(ConeEmitter);
-	engineEmitter.setGroupSize(3);
-	engineEmitter.setRandomLife(true);
-	engineEmitter.setLifespanRange(ofVec2f(1, 5));
+	leftEngineEmitter.setVelocity(ofVec3f(0, 0, 0));
+	leftEngineEmitter.setOneShot(true);
+	leftEngineEmitter.setEmitterType(ConeEmitter);
+	leftEngineEmitter.setGroupSize(3);
+	leftEngineEmitter.setRandomLife(true);
+	leftEngineEmitter.setLifespanRange(ofVec2f(1, 5));
 
-	leftWingEmitter.init();
-	leftWingEmitter.sys->addForce(leftTurbForce);
-	leftWingEmitter.sys->addForce(leftThrustForce);
+	rightEngineEmitter.init();
+	rightEngineEmitter.sys->addForce(rightEngineTurbForce);
+	rightEngineEmitter.sys->addForce(rightEngineThrustForce);
 
-	leftWingEmitter.setVelocity(ofVec3f(0, 0, 0));
-	leftWingEmitter.setOneShot(true);
-	leftWingEmitter.setEmitterType(ConeEmitter);
-	leftWingEmitter.setGroupSize(3);
-	leftWingEmitter.setRandomLife(true);
-	leftWingEmitter.setLifespanRange(ofVec2f(1, 5));
+	rightEngineEmitter.setVelocity(ofVec3f(0, 0, 0));
+	rightEngineEmitter.setOneShot(true);
+	rightEngineEmitter.setEmitterType(ConeEmitter);
+	rightEngineEmitter.setGroupSize(3);
+	rightEngineEmitter.setRandomLife(true);
+	rightEngineEmitter.setLifespanRange(ofVec2f(1, 5));
 
-	rightWingEmitter.init();
-	rightWingEmitter.sys->addForce(rightTurbForce);
-	rightWingEmitter.sys->addForce(rightThrustForce);
+	hoverEmitter.init();
+	hoverEmitter.sys->addForce(hoverTurbForce);
+	hoverEmitter.sys->addForce(hoverThrustForce);
 
-	rightWingEmitter.setVelocity(ofVec3f(0, 0, 0));
-	rightWingEmitter.setOneShot(true);
-	rightWingEmitter.setEmitterType(ConeEmitter);
-	rightWingEmitter.setGroupSize(3);
-	rightWingEmitter.setRandomLife(true);
-	rightWingEmitter.setLifespanRange(ofVec2f(1, 5));
+	hoverEmitter.setVelocity(ofVec3f(0, 0, 0));
+	hoverEmitter.setOneShot(true);
+	hoverEmitter.setEmitterType(ConeEmitter);
+	hoverEmitter.setGroupSize(3);
+	hoverEmitter.setRandomLife(true);
+	hoverEmitter.setLifespanRange(ofVec2f(1, 5));
 }
 
 Lander::~Lander()
 {
 	if (zThrustForce != nullptr)
 		delete zThrustForce;
+
 	if (yThrustForce != nullptr)
 		delete yThrustForce;
+
 	if (theGravityForce != nullptr)
 		delete theGravityForce;
-	if (engineTurbForce != nullptr)
-		delete engineTurbForce;
-	if (engineThrustForce != nullptr)
-		delete engineThrustForce;
+
+	if (leftEngineTurbForce != nullptr)
+		delete leftEngineTurbForce;
+	if (leftEngineThrustForce != nullptr)
+		delete leftEngineThrustForce;
+
+	if (rightEngineTurbForce != nullptr)
+		delete rightEngineTurbForce;
+	if (rightEngineThrustForce != nullptr)
+		delete rightEngineThrustForce;
+
+	if (hoverThrustForce != nullptr)
+		delete hoverThrustForce;
+	if (hoverTurbForce != nullptr)
+		delete hoverTurbForce;
 }
 
 void Lander::loadModel(std::string path)
@@ -138,42 +166,64 @@ void Lander::update()
 	forcesSystem.updateShape(this);
 
 	updateEmitters();
+	updateLights();
+}
+
+void Lander::updateLights()
+{
+	glm::mat4 transform = getTransform();
+	// make landerLight point down on the lander
+	glm::vec3 offset = glm::vec3(-3, 3, 3);
+	glm::vec3 center = glm::vec3(transform * glm::vec4(this->center + offset, 1.0f));
+	pointLight.setPosition(center);
+	pointLight.lookAt(center);
+
+	glm::vec3 landerCenter = glm::vec3(transform * glm::vec4(this->center, 1.0f));
+	glm::vec3 fullHeading = getRotatedHeading();
+	glm::vec3 rotateHeading = glm::normalize(glm::vec3(fullHeading.x, 0, fullHeading.z));
+	// -0.5f = move spotlight a bit in front and down
+	glm::vec3 tiltDir = glm::normalize(rotateHeading + glm::vec3(0, -0.5f, 0));
+	glm::vec3 spotlightPos = landerCenter + glm::vec3(0, -1.0f, 0);
+	spotLight.setPosition(spotlightPos);
+	spotLight.lookAt(spotlightPos + tiltDir * 10.0f);
 }
 
 void Lander::updateEmitters()
 {
 	ofSeedRandom();
 	glm::mat4 transform = getTransform();
-
-	glm::vec3 emitterOffset(-0.5, 0, 2.25);
-	engineEmitter.position = glm::vec3(transform * glm::vec4(emitterOffset, 1.0));
 	glm::vec3 rotatedHeading = getRotatedHeading();
 
-	engineThrustForce->thrust = -rotatedHeading * ofRandom(1, 11);
-	engineEmitter.particleDirection = -rotatedHeading;
-	engineEmitter.velocity = velocity;
+	/* ********************************** Left engine ********************************** */
+	glm::vec3 emitterOffset(-1.25, 0, 3);
+	leftEngineEmitter.position = glm::vec3(transform * glm::vec4(emitterOffset, 1.0));
 
-	engineEmitter.update();
+	leftEngineThrustForce->thrust = -rotatedHeading * ofRandom(1, 11);
+	leftEngineEmitter.particleDirection = -rotatedHeading;
+	leftEngineEmitter.velocity = velocity;
 
-	emitterOffset = { -1.85, 0, 1 };
-	leftWingEmitter.position = glm::vec3(transform * glm::vec4(emitterOffset, 1.0));
-	glm::vec3 leftHeading = {0, -1, 0};
+	leftEngineEmitter.update();
 
-	leftThrustForce->thrust = leftHeading * ofRandom(1, 11);
-	leftWingEmitter.particleDirection = leftHeading;
-	leftWingEmitter.velocity = velocity;
+	/* ********************************** Right engine ********************************** */
+	emitterOffset = { 1.25, 0, 3 };
+	rightEngineEmitter.position = glm::vec3(transform * glm::vec4(emitterOffset, 1.0));
 
-	leftWingEmitter.update();
+	rightEngineThrustForce->thrust = -rotatedHeading * ofRandom(1, 11);
+	rightEngineEmitter.particleDirection = -rotatedHeading;
+	rightEngineEmitter.velocity = velocity;
 
-	emitterOffset = { 1, 0, 1 };
-	rightWingEmitter.position = glm::vec3(transform * glm::vec4(emitterOffset, 1.0));
-	glm::vec3 rightHeading = { 0, -1, 0 };
+	rightEngineEmitter.update();
 
-	rightThrustForce->thrust = rightHeading * ofRandom(1, 11);
-	rightWingEmitter.particleDirection = rightHeading;
-	rightWingEmitter.velocity = velocity;
+	/* ********************************** Hover ********************************** */
+	emitterOffset = { 0, 0, 2.25 };
+	hoverEmitter.position = glm::vec3(transform * glm::vec4(emitterOffset, 1.0));
+	glm::vec3 hoverHeading = {0, -1, 0};
 
-	rightWingEmitter.update();
+	hoverThrustForce->thrust = hoverHeading * ofRandom(1, 11);
+	hoverEmitter.particleDirection = hoverHeading;
+	hoverEmitter.velocity = velocity;
+
+	hoverEmitter.update();
 }
 
 void Lander::draw()
@@ -199,30 +249,30 @@ void Lander::checkForMovement()
 	{
 		appliedZ = false;
 		zThrustForce->thrust += getRotatedHeading() * zThrustSpeed;
-		engineEmitter.start();
+		leftEngineEmitter.start();
+		rightEngineEmitter.start();
 	}
 
 	if (theKeymap->at("s") && !collisionBackward)
 	{
 		appliedZ = false;
 		zThrustForce->thrust += getRotatedHeading() * -zThrustSpeed;
-		engineEmitter.start();
+		leftEngineEmitter.start();
+		rightEngineEmitter.start();
 	}
 
 	if (theKeymap->at("space") && !collisionUp)
 	{
 		appliedY = false;
 		yThrustForce->thrust += glm::vec3(0, yThrustSpeed, 0);
-		leftWingEmitter.start();
-		rightWingEmitter.start();
+		hoverEmitter.start();
 	}
 
 	if (theKeymap->at("x") && !collisionDown)
 	{
 		appliedY = false;
 		yThrustForce->thrust += glm::vec3(0, -yThrustSpeed, 0);
-		leftWingEmitter.start();
-		rightWingEmitter.start();
+		hoverEmitter.start();
 	}
 
 	// hopefully fixes keys randomly getting stuck sometimes

@@ -13,10 +13,10 @@ class Lander : public Shape
 		Lander();
 		~Lander();
 		ForcesSystem forcesSystem;
-		ParticleEmitter engineEmitter;
 		// facing from the back
-		ParticleEmitter leftWingEmitter;
-		ParticleEmitter rightWingEmitter;
+		ParticleEmitter leftEngineEmitter;
+		ParticleEmitter rightEngineEmitter;
+		ParticleEmitter hoverEmitter;
 		glm::vec3 center;
 		vector<Box> bboxList;
 		vector<Box> colBoxList;
@@ -26,6 +26,8 @@ class Lander : public Shape
 		Box landerBounds;
 		Octree* theOctree;
 		std::map<std::string, bool>* theKeymap;
+		ofLight pointLight;
+		ofLight spotLight;
 
 		float yThrustSpeed;
 		float zThrustSpeed;
@@ -54,18 +56,19 @@ class Lander : public Shape
 		ThrustForce* yThrustForce;
 		GravityForce* theGravityForce;
 
-		TurbulenceForce* engineTurbForce;
-		ThrustForce* engineThrustForce;
+		TurbulenceForce* leftEngineTurbForce;
+		ThrustForce* leftEngineThrustForce;
 
-		TurbulenceForce* leftTurbForce;
-		ThrustForce* leftThrustForce;
+		TurbulenceForce* rightEngineTurbForce;
+		ThrustForce* rightEngineThrustForce;
 
-		TurbulenceForce* rightTurbForce;
-		ThrustForce* rightThrustForce;
+		TurbulenceForce* hoverTurbForce;
+		ThrustForce* hoverThrustForce;
 
 		void loadModel(std::string path);
 		void resolveCollision();
 		bool keyWasPressed();
 		void setupEmitters();
 		void updateEmitters();
+		void updateLights();
 };

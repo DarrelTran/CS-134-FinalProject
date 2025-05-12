@@ -27,6 +27,7 @@ void ofApp::setup(){
 	ofSetVerticalSync(true);
 	ofEnableSmoothing();
 	ofEnableDepthTest();
+	ofSetGlobalAmbientColor(ofColor(128));
 
 	// setup rudimentary lighting 
 	initLightingAndMaterials();
@@ -96,24 +97,19 @@ void ofApp::setup(){
 	shader.load("shaders/shader");
 #endif
 
-	landerLight.setSpotlight();                    
-	landerLight.setSpotlightCutOff(100);          
-	landerLight.setSpotConcentration(25); // make light a little more narrow        
-	landerLight.setDiffuseColor(ofColor::white);    
-	landerLight.setSpecularColor(ofColor::white);
-	landerLight.setScale(0.25);
-	landerLight.enable();
-
-	landerLightFront.setSpotlight();
-	landerLightFront.setSpotlightCutOff(100);
-	landerLightFront.setSpotConcentration(25);   
-	landerLightFront.setDiffuseColor(ofColor::white);
-	landerLightFront.setSpecularColor(ofColor::white);
-	landerLightFront.setScale(0.25);
-	landerLightFront.enable();
+	environmentLight.setPointLight();
+	environmentLight.setDiffuseColor(ofColor::grey);
+	environmentLight.setSpecularColor(ofColor::grey);
+	//environmentLight.setAttenuation(0.025f, 0.025f, 0.01f);
+	environmentLight.setScale(1);
+	environmentLight.setPosition(0, 200, 0);
+	environmentLight.enable();
 
 	theCam = &fixedCam;
 	updateCameras();
+
+	freeCam.setTarget(freeCam);
+	freeCam.setAutoDistance(false);
 }
 
 void ofApp::updateCameras()
@@ -137,6 +133,7 @@ void ofApp::updateCameras()
 	fixedCam.disableMouseInput();
 
 	freeCam.enableMouseInput();
+	freeCam.setNearClip(0.1f);
 }
 
 float ofApp::getAGL()
@@ -216,6 +213,15 @@ void ofApp::checkKeysPressed()
 			camPos -= up * freeCamSpeed;
 
 		freeCam.setPosition(camPos);
+
+		if (teleportPointSelected && (ofGetKeyPressed('q') || ofGetKeyPressed('Q')))
+		{
+			glm::vec3 camOffset(0, 10, 10);
+			freeCam.setPosition(teleportPoint + camOffset);
+			freeCam.lookAt(teleportPoint);
+
+			teleportPointSelected = false;
+		}
 	}
 }
  
@@ -240,22 +246,6 @@ void ofApp::draw()
 	ofMesh mesh;
 	if (lander.loaded) 
 	{
-		glm::mat4 transform = lander.getTransform();
-		// make landerLight point down on the lander
-		glm::vec3 center = glm::vec3(transform * glm::vec4(lander.center, 1.0f));
-		glm::vec3 offset = glm::vec3(0, 10, 5);
-		glm::vec3 lightPos = center + offset;
-		landerLight.setPosition(lightPos);
-		landerLight.lookAt(center);
-
-		// add front light to see in front
-		glm::vec3 centerF = glm::vec3(transform * glm::vec4(lander.center, 1.0f));
-		glm::vec3 offsetF = glm::vec3(0, 10, 5);
-		glm::vec3 lightPosF = centerF + offsetF;
-		landerLightFront.setPosition(lightPosF);
-		glm::vec3 forwardO = glm::normalize(glm::vec3(transform * glm::vec4(0, 0, -1, 0)));
-		landerLightFront.lookAt(centerF + forwardO * 10.0f);
-
 		lander.draw();
 
 		float range = 100.0f;
@@ -280,11 +270,6 @@ void ofApp::draw()
 		}
 	}
 
-	// highlight selected point (draw sphere around selected point)
-	if (bPointSelected && theCam == &freeCam) {
-		ofSetColor(ofColor::blue);
-		ofDrawSphere(selectedPoint, .1);
-	}
 	// recursively draw octree
 	ofDisableLighting();
 	int level = 0;
@@ -299,7 +284,7 @@ void ofApp::draw()
 	}
 
 	// if point selected, draw a sphere
-	if (pointSelected) {
+	if (pointSelected && theCam == &freeCam) {
 		ofVec3f p = octree.mesh.getVertex(selectedNode.points[0]);
 		ofVec3f d = p - theCam->getPosition();
 		ofSetColor(ofColor::lightGreen);
@@ -309,9 +294,9 @@ void ofApp::draw()
 	ofPopMatrix();
 	theCam->end();
 
-	lander.engineEmitter.loadVbo(ofFloatColor(0.76, 0.5, 0.1, 1.0));
-	lander.leftWingEmitter.loadVbo(ofFloatColor(0.2, 0.6, 1.0, 0.75));
-	lander.rightWingEmitter.loadVbo(ofFloatColor(0.4, 0.8, 1.0, 0.75));
+	lander.leftEngineEmitter.loadVbo(ofFloatColor(0.76, 0.5, 0.1, 1.0));
+	lander.rightEngineEmitter.loadVbo(ofFloatColor(0.76, 0.5, 0.1, 1.0));
+	lander.hoverEmitter.loadVbo(ofFloatColor(0.2, 0.6, 1.0, 0.75));
 
 	glDepthMask(GL_FALSE);
 	ofSetColor(255, 100, 90);
@@ -324,9 +309,9 @@ void ofApp::draw()
 	theCam->begin();
 
 	shaderTexture.bind();
-	lander.engineEmitter.vbo.draw(GL_POINTS, 0, (int)lander.engineEmitter.sys->particles.size());
-	lander.leftWingEmitter.vbo.draw(GL_POINTS, 0, (int)lander.leftWingEmitter.sys->particles.size());
-	lander.rightWingEmitter.vbo.draw(GL_POINTS, 0, (int)lander.rightWingEmitter.sys->particles.size());
+	lander.leftEngineEmitter.vbo.draw(GL_POINTS, 0, (int)lander.leftEngineEmitter.sys->particles.size());
+	lander.rightEngineEmitter.vbo.draw(GL_POINTS, 0, (int)lander.rightEngineEmitter.sys->particles.size());
+	lander.hoverEmitter.vbo.draw(GL_POINTS, 0, (int)lander.hoverEmitter.sys->particles.size());
 	shaderTexture.unbind();
 
 	theCam->end();
@@ -346,14 +331,28 @@ void ofApp::draw()
 	if (bShowAGL)
 	{
 		std::string aglStr = "AGL: " + std::to_string(oldAGL);
-		ofDrawBitmapString(lander.position, 15, 15);
+		ofDrawBitmapString(aglStr, 15, 15);
 	}
-	std::string onboardCamStr = "Onboard camera (fps): Press 1";
-	ofDrawBitmapString(onboardCamStr, ofGetWindowWidth() - 300, 50);
+	std::string onboardCamStr = "Onboard camera: Press 1";
+	ofDrawBitmapString(onboardCamStr, ofGetWindowWidth() - 350, 50);
+
 	std::string fixedCamStr = "Fixed camera: Press 2";
-	ofDrawBitmapString(fixedCamStr, ofGetWindowWidth() - 300, 75);
+	ofDrawBitmapString(fixedCamStr, ofGetWindowWidth() - 350, 60);
+
 	std::string freeCamStr = "Free camera: Press 3";
-	ofDrawBitmapString(freeCamStr, ofGetWindowWidth() - 300, 100);
+	ofDrawBitmapString(freeCamStr, ofGetWindowWidth() - 350, 70);
+	std::string freeCamStr1 = "Free camera left: Press a";
+	ofDrawBitmapString(freeCamStr1, ofGetWindowWidth() - 350, 80);
+	std::string freeCamStr2 = "Free camera right: Press d";
+	ofDrawBitmapString(freeCamStr2, ofGetWindowWidth() - 350, 90);
+	std::string freeCamStr3 = "Free camera up: Press w";
+	ofDrawBitmapString(freeCamStr3, ofGetWindowWidth() - 350, 100);
+	std::string freeCamStr4 = "Free camera down: Press s";
+	ofDrawBitmapString(freeCamStr4, ofGetWindowWidth() - 350, 110);
+	std::string freeCamStr5 = "Free camera rotate: Mouse";
+	ofDrawBitmapString(freeCamStr5, ofGetWindowWidth() - 350, 120);
+	std::string freeCamStr6 = "Free camera teleport: Click + q";
+	ofDrawBitmapString(freeCamStr6, ofGetWindowWidth() - 350, 130);
 }
 
 void ofApp::keyPressed(int key) 
@@ -402,6 +401,13 @@ void ofApp::keyPressed(int key)
 		break;
 	default:
 		break;
+	}
+
+	if (key == 'e' || key == 'E')
+	{
+		landerDraggable = !landerDraggable;
+
+		std::cout << "Lander is now draggable: " << landerDraggable << " and bInDrag is: " << bInDrag << std::endl;
 	}
 }
 
@@ -461,6 +467,8 @@ void ofApp::keyReleased(int key)
 			glm::vec3 oldPosition = theCam->getPosition();
 			theCam = &freeCam;
 			freeCam.setPosition(oldPosition);
+			freeCam.lookAt(oldPosition + glm::vec3(0, 0, -1));
+			freeCam.setTarget(freeCam);
 			break;
 		}
 		default:
@@ -493,7 +501,7 @@ void ofApp::mousePressed(int x, int y, int button)
 
 		Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 		bool hit = bounds.intersect(Ray(Vector3(origin.x, origin.y, origin.z), Vector3(mouseDir.x, mouseDir.y, mouseDir.z)), 0, 10000);
-		if (hit) {
+		if (hit && landerDraggable) {
 			bLanderSelected = true;
 			mouseDownPos = getMousePointOnPlane(lander.position, theCam->getZAxis());
 			mouseLastPos = mouseDownPos;
@@ -510,10 +518,14 @@ void ofApp::mousePressed(int x, int y, int button)
 
 		if (raySelectWithOctree(p))
 		{
-			glm::vec3 camOffset(0, 10, 10); 
-			freeCam.setPosition(p + camOffset);
-			freeCam.lookAt(p);
+			teleportPointSelected = true;
+			teleportPoint = p;
 		}
+	}
+	else
+	{
+		landerDraggable = false;
+		teleportPointSelected = false;
 	}
 }
 
