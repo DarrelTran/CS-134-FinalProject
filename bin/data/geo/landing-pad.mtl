@@ -6,97 +6,67 @@ Tf 1.00 1.00 1.00
 Ni 1.00
 newmtl lambert3SG
 illum 4
-Kd 0.62 0.59 0.08
-Ka 0.69 0.69 0.69
+Kd 0.73 0.70 0.08
+Ka 0.32 0.32 0.32
 Tf 1.00 1.00 1.00
 Ni 1.00
-newmtl lambert4SG
-illum 4
-Kd 0.01 0.01 0.01
-Ka 0.25 0.25 0.25
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl landing_pad1:lambert4SG
-illum 4
-Kd 0.72 0.58 0.09
-Ka 0.52 0.52 0.52
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl landing_pad1:lambert5SG
-illum 4
-Kd 0.01 0.01 0.01
-Ka 0.13 0.13 0.13
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl spaceship1:lambert4SG
-illum 4
-Kd 0.18 0.23 0.27
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl spaceship1:lambert5SG
-illum 4
-Kd 0.21 0.26 0.29
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl spaceship1:lambert6SG
-illum 4
-Kd 0.08 0.13 0.13
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl spaceship1:lambert7SG
-illum 4
-Kd 0.37 0.29 0.19
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl spaceship1:lambert8SG
-illum 4
-Kd 0.09 0.09 0.08
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl spaceship1:lambert9SG
-illum 4
-Kd 0.24 0.21 0.15
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl spaceship1:lambert10SG
-illum 4
-Kd 0.33 0.36 0.38
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl spaceship1:lambert11SG
-illum 4
-Kd 0.76 0.68 0.66
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl spaceship1:lambert12SG
-illum 4
-Kd 0.16 0.17 0.19
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl spaceship1:lambert13SG
-illum 4
-Kd 0.13 0.22 0.25
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl spaceship1:standardSurface2SG
+newmtl land:lambert4SG
 illum 4
 Kd 0.00 0.00 0.00
+Ka 0.05 0.05 0.05
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl spaceship2:lambert2SG
+illum 4
+Kd 0.18 0.22 0.27
 Ka 0.00 0.00 0.00
 Tf 1.00 1.00 1.00
-Ni 0.00
-newmtl terrain1:lambert2SG
+Ni 1.00
+newmtl spaceship2:lambert3SG
 illum 4
-Kd 0.25 0.28 0.28
-Ka 0.52 0.52 0.52
+Kd 0.12 0.16 0.22
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl spaceship2:lambert4SG
+illum 4
+Kd 0.06 0.06 0.07
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl spaceship2:lambert5SG
+illum 4
+Kd 0.13 0.15 0.18
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl spaceship2:lambert6SG
+illum 4
+Kd 0.05 0.06 0.06
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl spaceship2:lambert7SG
+illum 4
+Kd 0.13 0.18 0.21
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl spaceship2:lambert8SG
+illum 4
+Kd 0.07 0.09 0.12
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl spaceship2:lambert9SG
+illum 4
+Kd 0.11 0.15 0.19
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl spaceship2:lambert10SG
+illum 4
+Kd 0.20 0.22 0.23
+Ka 0.00 0.00 0.00
 Tf 1.00 1.00 1.00
 Ni 1.00
