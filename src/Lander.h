@@ -32,13 +32,21 @@ class Lander : public Shape
 		float yThrustSpeed;
 		float zThrustSpeed;
 
+		float maxFuel;      // Maximum fuel amount (seconds of thrust)
+		float fuel;         // Current fuel amount
+		float fuelBurnRate; // Fuel consumed per second of thrust
+		bool outOfFuel;     // Set true when fuel runs out
+
+		bool thrustActive;
+		bool isThrusting() const { return thrustActive; }
+
 		bool collisionUp = false;
 		bool collisionDown = false;
 		bool collisionForward = false;
 		bool collisionBackward = false;
 
-		void checkForMovement();
-		void update();
+		void checkForMovement(float deltaTime);
+		void update(float deltaTime);
 		void draw();
 
 		glm::vec3 getSceneMin();

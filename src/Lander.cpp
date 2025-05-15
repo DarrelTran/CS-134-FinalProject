@@ -23,6 +23,11 @@ Lander::Lander()
     angularVelocity = 0;
     angularAcceleration = 0;
 
+	maxFuel = 120.0f;
+	fuel = maxFuel;
+	fuelBurnRate = 1.0f; 
+	outOfFuel = false;
+
 	loadModel("geo/spaceship.obj");
 
 	zThrustForce = new ThrustForce(glm::vec3(0, 0, 0), true, true);
@@ -157,12 +162,12 @@ glm::vec3 Lander::getSceneMax()
 	return landerModel.getSceneMax();
 }
 
-void Lander::update()
+void Lander::update(float deltaTime)
 {
 	lastPos = position;
 
 	bounceTerrain();
-	checkForMovement();
+	checkForMovement(deltaTime);
 	forcesSystem.updateShape(this);
 
 	updateEmitters();
@@ -236,7 +241,7 @@ void Lander::draw()
 	ofPopMatrix();
 }
 
-void Lander::checkForMovement()
+void Lander::checkForMovement(float deltaTime)
 {
 	// Step 1: Reset thrusts each frame
 	zThrustForce->thrust = glm::vec3(0);
@@ -245,34 +250,56 @@ void Lander::checkForMovement()
 	bool appliedZ = true;
 	bool appliedY = true;
 
-	if (theKeymap->at("w") && !collisionForward)
+	thrustActive = false;
+	
+	if (!outOfFuel) 
 	{
-		appliedZ = false;
-		zThrustForce->thrust += getRotatedHeading() * zThrustSpeed;
-		leftEngineEmitter.start();
-		rightEngineEmitter.start();
+		if (theKeymap->at("w") && !collisionForward)
+		{
+			appliedZ = false;
+			zThrustForce->thrust += getRotatedHeading() * zThrustSpeed;
+			leftEngineEmitter.start();
+			rightEngineEmitter.start();
+			thrustActive = true;
+		}
+
+		if (theKeymap->at("s") && !collisionBackward)
+		{
+			appliedZ = false;
+			zThrustForce->thrust += getRotatedHeading() * -zThrustSpeed;
+			leftEngineEmitter.start();
+			rightEngineEmitter.start();
+			thrustActive = true;
+		}
+
+		if (theKeymap->at("space") && !collisionUp)
+		{
+			appliedY = false;
+			yThrustForce->thrust += glm::vec3(0, yThrustSpeed, 0);
+			hoverEmitter.start();
+			thrustActive = true;
+		}
+
+		if (theKeymap->at("x") && !collisionDown)
+		{
+			appliedY = false;
+			yThrustForce->thrust += glm::vec3(0, -yThrustSpeed, 0);
+			hoverEmitter.start();
+			thrustActive = true;
+		}
 	}
 
-	if (theKeymap->at("s") && !collisionBackward)
-	{
-		appliedZ = false;
-		zThrustForce->thrust += getRotatedHeading() * -zThrustSpeed;
-		leftEngineEmitter.start();
-		rightEngineEmitter.start();
+	if (thrustActive && !outOfFuel) {
+		fuel -= fuelBurnRate * deltaTime;
+		if (fuel <= 0) {
+			fuel = 0;
+			outOfFuel = true;
+		}
 	}
 
-	if (theKeymap->at("space") && !collisionUp)
-	{
-		appliedY = false;
-		yThrustForce->thrust += glm::vec3(0, yThrustSpeed, 0);
-		hoverEmitter.start();
-	}
-
-	if (theKeymap->at("x") && !collisionDown)
-	{
-		appliedY = false;
-		yThrustForce->thrust += glm::vec3(0, -yThrustSpeed, 0);
-		hoverEmitter.start();
+	if (outOfFuel) {
+		zThrustForce->thrust = glm::vec3(0);
+		yThrustForce->thrust = glm::vec3(0);
 	}
 
 	// hopefully fixes keys randomly getting stuck sometimes

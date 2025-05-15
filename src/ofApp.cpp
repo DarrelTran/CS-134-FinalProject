@@ -35,6 +35,31 @@ void ofApp::setup(){
 	mars.loadModel("geo/terrain.obj");
 	mars.setScaleNormalization(false);
 
+	// Set desired landing pad positions
+	padPositions[0] = glm::vec3(-107, -53, -262);
+	padPositions[1] = glm::vec3(665, -289, -689);
+	padPositions[2] = glm::vec3(-638, -262, 469);
+	landingPadBoxes.clear();
+
+	for (int i = 0; i < 3; i++) {
+		landingPads[i].loadModel("geo/landing-pad.obj"); // Or 3 different models
+		landingPads[i].setPosition(padPositions[i].x, padPositions[i].y, padPositions[i].z);
+		landingPads[i].setScaleNormalization(false);
+
+		// get bounding box in LOCAL (model) space
+		Box padBox = Octree::meshBounds(landingPads[i].getMesh(0));
+
+		// Transform the padBox into world coordinates using pad position (assume no rotation/scale)
+		padBox.setMin(padBox.min() + padPositions[i]);
+		padBox.setMax(padBox.max() + padPositions[i]);
+		landingPadBoxes.push_back(padBox);
+	}
+
+	thrustSFX.load("sounds/thrust.wav");           
+	thrustSFX.setLoop(true);                       
+	thrustSFX.setMultiPlay(false);                 
+	thrustSFX.setVolume(0.7f);
+
 	// create sliders for testing
 	gui.setup();
 	gui.add(numLevels.setup("Number of Octree Levels", 1, 1, maxLevels));
@@ -227,8 +252,35 @@ void ofApp::checkKeysPressed()
 //--------------------------------------------------------------
 void ofApp::update() 
 {
+	if (landedOnPad) return;
+	
 	checkKeysPressed();
-	lander.update();
+	float deltaTime = ofGetLastFrameTime(); // seconds
+	lander.update(deltaTime);
+
+	if (lander.isThrusting() && !lander.outOfFuel) {
+		if (!thrustSFX.isPlaying()) {
+			thrustSFX.play();
+		}
+	}
+	else {
+		if (thrustSFX.isPlaying()) {
+			thrustSFX.stop();
+		}
+	}
+
+	if (!landedOnPad) { // Only check if game not over
+		Box landerBox = lander.getIntersectionBounds();
+		for (int i = 0; i < 3; i++) {
+			if (landerBox.overlap(landingPadBoxes[i])) {
+				landedOnPad = true;
+				landedPadIndex = i;
+				// play sound, set flag, etc.
+				break;
+			}
+		}
+	}
+
 	updateCameras();
 	oldAGL = getAGL();
 }
@@ -273,6 +325,10 @@ void ofApp::draw()
 			ofSetColor(ofColor::red);
 			Octree::drawBox(lander.colBoxList.at(i));
 		}
+	}
+
+	for (int i = 0; i < 3; i++) {
+		landingPads[i].drawFaces();
 	}
 
 	// recursively draw octree
@@ -360,6 +416,21 @@ void ofApp::draw()
 	ofDrawBitmapString(freeCamStr6, ofGetWindowWidth() - 300, 130);
 	std::string freeCamStr7 = "Free camera Enable/Disable drag: E";
 	ofDrawBitmapString(freeCamStr7, ofGetWindowWidth() - 300, 140);
+
+	if (landedOnPad) {
+		ofSetColor(ofColor::lime);
+		std::string msg = "SUCCESSFUL LANDING ON PAD #" + std::to_string(landedPadIndex + 1) + "!";
+		ofDrawBitmapString(msg, ofGetWidth() / 2 - 100, 40);
+	}
+
+	ofSetColor(ofColor::white);
+	std::string fuelString = "Fuel: " + std::to_string((int)lander.fuel) + "s";
+	ofDrawBitmapString(fuelString, 15, 35);
+
+	if (lander.outOfFuel) {
+		ofSetColor(ofColor::red);
+		ofDrawBitmapString("OUT OF FUEL!", ofGetWidth() / 2 - 56, 100);
+	}
 }
 
 void ofApp::keyPressed(int key) 
