@@ -27,6 +27,7 @@ void ofApp::setup(){
 	ofSetVerticalSync(true);
 	ofEnableSmoothing();
 	ofEnableDepthTest();
+	ofEnableAntiAliasing();
 	//ofSetGlobalAmbientColor(ofColor(128));
 
 	// setup rudimentary lighting 
@@ -133,10 +134,37 @@ void ofApp::setup(){
 	environmentLight.setPointLight();
 	environmentLight.setDiffuseColor(ofColor::grey);
 	environmentLight.setSpecularColor(ofColor::grey);
-	//environmentLight.setAttenuation(0.025f, 0.025f, 0.01f);
 	environmentLight.setScale(1);
 	environmentLight.setPosition(0, 200, 0);
 	environmentLight.enable();
+
+	for (int i = 0; i < 3; i++)
+	{
+		glm::vec3 pPos = padPositions[i];
+
+		padLights[i].setSpotlight();
+		padLights[i].setSpotConcentration(2);
+		padLights[i].setDiffuseColor(ofColor::blue);
+		padLights[i].setSpecularColor(ofColor::blue);
+		padLights[i].setAmbientColor(ofColor::blue);
+		padLights[i].setScale(1);
+		padLights[i].setSpotlightCutOff(100);
+		padLights[i].setSpotConcentration(5);
+		padLights[i].setPosition(pPos.x, pPos.y + 20, pPos.z);
+		padLights[i].lookAt(pPos);
+		padLights[i].enable();
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		float beamRadius = 5;
+		float beamHeight = 1000;
+		float x = padPositions[i].x;
+		float y = padPositions[i].y;
+		float z = padPositions[i].z;
+		beams[i].set(beamRadius, beamHeight);
+		beams[i].setPosition(x, y + beamHeight / 2.0, z);
+	}
 
 	theCam = &fixedCam;
 	updateCameras();
@@ -314,8 +342,6 @@ void ofApp::update()
 	oldAGL = getAGL();
 }
 
-
-
 //--------------------------------------------------------------
 void ofApp::draw() 
 {
@@ -366,15 +392,42 @@ void ofApp::draw()
 	lander.rightEngineEmitter.loadVbo(ofFloatColor(0.76, 0.5, 0.1, 1.0));
 	lander.hoverEmitter.loadVbo(ofFloatColor(0.2, 0.6, 1.0, 0.75));
 
+	// begin drawing in the camera
+	theCam->begin();
+
 	glDepthMask(GL_FALSE);
 	ofSetColor(255, 100, 90);
 	// this makes everything look glowy :)
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
 	ofEnablePointSprites();
 
-	// begin drawing in the camera
+	for (int i = 0; i < 3; i++)
+	{
+		glm::vec3 beamPos = beams[i].getPosition();
+
+		float dist = glm::distance(glm::vec2(lander.position.x, lander.position.z),
+			glm::vec2(beamPos.x, beamPos.z));
+
+		float beamAlpha = 100;
+		if (dist < 400.0f)
+		{
+			beamAlpha = beamAlpha * (dist / 400);
+
+			if (beamAlpha < 1.0f)
+				beamAlpha = 0;
+		}
+		else
+		{
+			beamAlpha = 100;
+		}
+
+		ofColor beamColor = ofColor::white;
+		beamColor.a = beamAlpha;
+		ofSetColor(beamColor);
+		beams[i].draw();
+	}
+
 	shader.begin();
-	theCam->begin();
 
 	shaderTexture.bind();
 	lander.leftEngineEmitter.vbo.draw(GL_POINTS, 0, (int)lander.leftEngineEmitter.sys->particles.size());
@@ -410,27 +463,27 @@ void ofApp::draw()
 		ofDrawBitmapString(aglStr, 15, 15);
 	}
 	std::string onboardCamStr = "Onboard camera: 1";
-	ofDrawBitmapString(onboardCamStr, ofGetWindowWidth() - 300, 50);
+	ofDrawBitmapString(onboardCamStr, ofGetWindowWidth() - 250, 50);
 
 	std::string fixedCamStr = "Fixed camera: 2";
-	ofDrawBitmapString(fixedCamStr, ofGetWindowWidth() - 300, 60);
+	ofDrawBitmapString(fixedCamStr, ofGetWindowWidth() - 250, 60);
 
 	std::string freeCamStr = "Free camera: 3";
-	ofDrawBitmapString(freeCamStr, ofGetWindowWidth() - 300, 70);
+	ofDrawBitmapString(freeCamStr, ofGetWindowWidth() - 250, 70);
 	std::string freeCamStr1 = "Free camera left: A";
-	ofDrawBitmapString(freeCamStr1, ofGetWindowWidth() - 300, 80);
+	ofDrawBitmapString(freeCamStr1, ofGetWindowWidth() - 250, 80);
 	std::string freeCamStr2 = "Free camera right: D";
-	ofDrawBitmapString(freeCamStr2, ofGetWindowWidth() - 300, 90);
-	std::string freeCamStr3 = "Free camera up: W";
-	ofDrawBitmapString(freeCamStr3, ofGetWindowWidth() - 300, 100);
-	std::string freeCamStr4 = "Free camera down: S";
-	ofDrawBitmapString(freeCamStr4, ofGetWindowWidth() - 300, 110);
+	ofDrawBitmapString(freeCamStr2, ofGetWindowWidth() - 250, 90);
+	std::string freeCamStr3 = "Free camera forward: W";
+	ofDrawBitmapString(freeCamStr3, ofGetWindowWidth() - 250, 100);
+	std::string freeCamStr4 = "Free camera back: S";
+	ofDrawBitmapString(freeCamStr4, ofGetWindowWidth() - 250, 110);
 	std::string freeCamStr5 = "Free camera rotate: Mouse";
-	ofDrawBitmapString(freeCamStr5, ofGetWindowWidth() - 300, 120);
+	ofDrawBitmapString(freeCamStr5, ofGetWindowWidth() - 250, 120);
 	std::string freeCamStr6 = "Free camera teleport: Click + q";
-	ofDrawBitmapString(freeCamStr6, ofGetWindowWidth() - 300, 130);
+	ofDrawBitmapString(freeCamStr6, ofGetWindowWidth() - 250, 130);
 	std::string freeCamStr7 = "Free camera Enable/Disable drag: E";
-	ofDrawBitmapString(freeCamStr7, ofGetWindowWidth() - 300, 140);
+	ofDrawBitmapString(freeCamStr7, ofGetWindowWidth() - 250, 140);
 
 	if (lander.exploded) {
 		ofSetColor(ofColor::red);

@@ -98,8 +98,11 @@ class ofApp : public ofBaseApp{
 		ofxAssimpModelLoader landingPads[3];
 		glm::vec3 padPositions[3]; // positions to place each pad
 		std::vector<Box> landingPadBoxes; // collision areas for each pad
+		ofLight padLights[3];
 
 		ofSoundPlayer thrustSFX;
 		ofSoundPlayer explosionSFX;
 		ofImage backgroundImg;
+
+		ofCylinderPrimitive beams[3];
 };

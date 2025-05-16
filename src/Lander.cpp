@@ -56,6 +56,7 @@ Lander::Lander()
 	pointLight.setPointLight();
 	pointLight.setDiffuseColor(ofColor::white);
 	pointLight.setSpecularColor(ofColor::white);
+	pointLight.setAmbientColor(ofColor::white);
 	pointLight.setAttenuation(0.025f, 0.025f, 0.01f);
 	pointLight.setScale(1);
 	pointLight.enable();
@@ -63,6 +64,7 @@ Lander::Lander()
 	spotLight.setSpotlight();
 	spotLight.setDiffuseColor(ofColor::white);
 	spotLight.setSpecularColor(ofColor::white);
+	spotLight.setAmbientColor(ofColor::white);
 	spotLight.setSpotlightCutOff(15);
 	spotLight.setSpotConcentration(60);
 	spotLight.setScale(1);
