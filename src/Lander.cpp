@@ -16,8 +16,8 @@ Lander::Lander()
 
     mass = 1;
 
-    yThrustSpeed = 20;
-	zThrustSpeed = 20;
+    yThrustSpeed = 30;
+	zThrustSpeed = 30;
 
     rotationSpeed = 200;
     angularVelocity = 0;
@@ -39,6 +39,19 @@ Lander::Lander()
 	forcesSystem.addForce(theGravityForce);
 
 	setupEmitters();
+
+	explosionEmitter.init();
+	explosionEmitter.setEmitterType(RadialEmitter);
+	explosionEmitter.setOneShot(true);
+	explosionEmitter.setGroupSize(500); 
+	explosionEmitter.setRandomLife(true);
+	explosionEmitter.setLifespanRange(ofVec2f(2.0, 3.0));
+	explosionEmitter.setMass(1.0);
+	explosionEmitter.setVelocity(ofVec3f(0, 120, 0));
+	explosionEmitter.setDamping(0.98);
+	explosionEmitter.setParticleRadius(0.18);
+	explosionEmitter.setRate(10000); 
+	explosionEmitter.position = glm::vec3(0, 0, 0);
 
 	pointLight.setPointLight();
 	pointLight.setDiffuseColor(ofColor::white);
@@ -172,6 +185,28 @@ void Lander::update(float deltaTime)
 
 	updateEmitters();
 	updateLights();
+
+	explosionEmitter.update();
+
+	if (landedOnPad) {
+		velocity = glm::vec3(0);
+		acceleration = glm::vec3(0);
+		angularVelocity = 0;
+		angularAcceleration = 0;
+		// (position remains as where landed)
+		return;
+	}
+
+	if (exploded && !catapulted) {
+		int now = ofGetElapsedTimeMillis();
+		if ((now - explosionTime) > (catapultDelay * 1000)) { 
+			// Apply the big velocity launch!
+			velocity += glm::vec3(ofRandom(-360, 360), ofRandom(360, 480), ofRandom(-360, 360));
+			angularVelocity = ofRandom(-720, 720);
+			catapulted = true;
+			// Optionally, play some SFX here!
+		}
+	}
 }
 
 void Lander::updateLights()
@@ -239,6 +274,10 @@ void Lander::draw()
 	landerModel.drawFaces();
 
 	ofPopMatrix();
+
+	if (exploded) {
+		explosionEmitter.draw(); 
+	}
 }
 
 void Lander::checkForMovement(float deltaTime)
@@ -300,6 +339,13 @@ void Lander::checkForMovement(float deltaTime)
 	if (outOfFuel) {
 		zThrustForce->thrust = glm::vec3(0);
 		yThrustForce->thrust = glm::vec3(0);
+	}
+
+	if (exploded) {
+		// Reset all thrust and rotation for safety
+		zThrustForce->thrust = glm::vec3(0);
+		yThrustForce->thrust = glm::vec3(0);
+		return;
 	}
 
 	// hopefully fixes keys randomly getting stuck sometimes
@@ -390,6 +436,30 @@ void Lander::bounceTerrain()
 	{
 		theGravityForce->applyOnce = false;
 	}
+
+	for (auto& padBox : *landingPadBoxListPtr) {
+		if (getIntersectionBounds().overlap(padBox)) {
+			colBoxList.push_back(padBox);
+		}
+	}
+
+	bool contactThisFrame = !colBoxList.empty();
+	//float explosionVelocityThreshold = 40.0f;
+	if (contactThisFrame && !contactLastFrame) {
+		if (!exploded && glm::length(velocity) > explosionVelocityThreshold) {
+			exploded = true;
+			explosionEmitter.position = position;
+			explosionEmitter.start();
+			explosionEmitter.visible = false;
+			explosionTime = ofGetElapsedTimeMillis();
+			fuel = 0;
+			outOfFuel = true;
+			//velocity += glm::vec3(ofRandom(-360, 360), ofRandom(360, 480), ofRandom(-360, 360));
+			//angularVelocity = ofRandom(-720, 720);
+		}
+	}
+	
+	//contactLastFrame = contactThisFrame;
 }
 
 void Lander::resolveCollision()

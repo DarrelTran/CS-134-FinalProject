@@ -98,11 +98,8 @@ class ofApp : public ofBaseApp{
 		ofxAssimpModelLoader landingPads[3];
 		glm::vec3 padPositions[3]; // positions to place each pad
 		std::vector<Box> landingPadBoxes; // collision areas for each pad
-		bool landedOnPad = false;  // Has the lander won/ended?
-		int landedPadIndex = -1;   // Which pad, if wanted (-1=none)
 
 		ofSoundPlayer thrustSFX;
-
-		// DELETE ME LATER 
-		void drawNearby();
+		ofSoundPlayer explosionSFX;
+		ofImage backgroundImg;
 };

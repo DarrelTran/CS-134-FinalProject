@@ -35,6 +35,8 @@ void ofApp::setup(){
 	mars.loadModel("geo/terrain.obj");
 	mars.setScaleNormalization(false);
 
+	backgroundImg.load("images/background.jpg");
+
 	// Set desired landing pad positions
 	padPositions[0] = glm::vec3(-107, -53, -262);
 	padPositions[1] = glm::vec3(665, -289, -689);
@@ -55,10 +57,16 @@ void ofApp::setup(){
 		landingPadBoxes.push_back(padBox);
 	}
 
+	lander.landingPadBoxListPtr = &landingPadBoxes;
+
 	thrustSFX.load("sounds/thrust.wav");           
 	thrustSFX.setLoop(true);                       
 	thrustSFX.setMultiPlay(false);                 
 	thrustSFX.setVolume(0.7f);
+
+	explosionSFX.load("sounds/explosion.wav");   
+	explosionSFX.setMultiPlay(false);
+	explosionSFX.setVolume(0.7f);
 
 	// create sliders for testing
 	gui.setup();
@@ -252,12 +260,17 @@ void ofApp::checkKeysPressed()
 //--------------------------------------------------------------
 void ofApp::update() 
 {
-	if (landedOnPad) return;
+	if (lander.landedOnPad) {
+		if (thrustSFX.isPlaying()) {
+			thrustSFX.stop();
+		}
+		return;
+	}
 	
 	checkKeysPressed();
 	float deltaTime = ofGetLastFrameTime(); // seconds
 	lander.update(deltaTime);
-
+	
 	if (lander.isThrusting() && !lander.outOfFuel) {
 		if (!thrustSFX.isPlaying()) {
 			thrustSFX.play();
@@ -269,44 +282,45 @@ void ofApp::update()
 		}
 	}
 
-	if (!landedOnPad) { // Only check if game not over
-		Box landerBox = lander.getIntersectionBounds();
-		for (int i = 0; i < 3; i++) {
-			if (landerBox.overlap(landingPadBoxes[i])) {
-				landedOnPad = true;
-				landedPadIndex = i;
-				// play sound, set flag, etc.
-				break;
+	
+	Box landerBox = lander.getIntersectionBounds();
+	for (int i = 0; i < 3; i++) {
+		bool isContactNow = landerBox.overlap(landingPadBoxes[i]);
+		static bool wasContact[3] = { false,false,false };
+
+		if (isContactNow && !wasContact[i]) {
+			if (glm::length(lander.velocity) > lander.explosionVelocityThreshold) {
+				lander.exploded = true;
+				thrustSFX.stop();
+				lander.explosionEmitter.position = lander.position;
+				lander.explosionEmitter.start();
+				lander.explosionEmitter.visible = false;
+				explosionSFX.play();
+				lander.fuel = 0;
+				lander.outOfFuel = true;
+				lander.velocity += glm::vec3(ofRandom(-720, 720), ofRandom(360, 480), ofRandom(-720, 720));
+				lander.angularVelocity = ofRandom(-720, 720);
+			}
+			else {
+				lander.landedOnPad = true;
+				lander.landedPadIndex = i;
 			}
 		}
+		wasContact[i] = isContactNow;
 	}
+	
 
 	updateCameras();
 	oldAGL = getAGL();
 }
 
-void ofApp::drawNearby()
-{
-	float range = 100.0f;
-	glm::vec3 pos = lander.position;
-	glm::vec3 min(pos.x - range / 2, pos.y - range / 2, pos.z - range / 2);
-	glm::vec3 max(pos.x + range / 2, pos.y + range / 2, pos.z + range / 2);
-	Box rangeBox(min, max);
 
-	std::vector<Box> nearbyBoxes;
-	octree.intersect(rangeBox, octree.root, nearbyBoxes);
-
-	for (const Box& box : nearbyBoxes)
-	{
-		ofSetColor(ofColor::orange);
-		Octree::drawBox(box);
-	}
-}
 
 //--------------------------------------------------------------
 void ofApp::draw() 
 {
-	ofBackground(ofColor::black);
+	backgroundImg.draw(0, 0, ofGetWidth(), ofGetHeight());
+	ofEnableDepthTest();
 
 	theCam->begin();
 	ofPushMatrix();
@@ -318,13 +332,6 @@ void ofApp::draw()
 	{
 		lander.draw();
 
-		drawNearby();
-
-		for (int i = 0; i < lander.colBoxList.size(); i++)
-		{
-			ofSetColor(ofColor::red);
-			Octree::drawBox(lander.colBoxList.at(i));
-		}
 	}
 
 	for (int i = 0; i < 3; i++) {
@@ -375,9 +382,17 @@ void ofApp::draw()
 	lander.hoverEmitter.vbo.draw(GL_POINTS, 0, (int)lander.hoverEmitter.sys->particles.size());
 	shaderTexture.unbind();
 
+	if (lander.exploded) {
+		lander.explosionEmitter.loadVbo(ofFloatColor(1, 0.4, 0.04, 0.8)); // fireball color
+		shaderTexture.bind();
+		lander.explosionEmitter.vbo.draw(GL_POINTS, 0, (int)lander.explosionEmitter.sys->particles.size());
+		shaderTexture.unbind();
+	}
+	
+
 	theCam->end();
 	shader.end();
-
+	ofDisableDepthTest();
 	ofDisablePointSprites();
 	ofDisableBlendMode();
 	ofEnableAlphaBlending();
@@ -417,9 +432,14 @@ void ofApp::draw()
 	std::string freeCamStr7 = "Free camera Enable/Disable drag: E";
 	ofDrawBitmapString(freeCamStr7, ofGetWindowWidth() - 300, 140);
 
-	if (landedOnPad) {
+	if (lander.exploded) {
+		ofSetColor(ofColor::red);
+		ofDrawBitmapString("CRASH! LANDER DESTROYED!", ofGetWidth() / 2 - 80, 60);
+	}
+	
+	if (lander.landedOnPad) {
 		ofSetColor(ofColor::lime);
-		std::string msg = "SUCCESSFUL LANDING ON PAD #" + std::to_string(landedPadIndex + 1) + "!";
+		std::string msg = "SUCCESSFUL LANDING ON PAD #" + std::to_string(lander.landedPadIndex + 1) + "!";
 		ofDrawBitmapString(msg, ofGetWidth() / 2 - 100, 40);
 	}
 
@@ -431,6 +451,8 @@ void ofApp::draw()
 		ofSetColor(ofColor::red);
 		ofDrawBitmapString("OUT OF FUEL!", ofGetWidth() / 2 - 56, 100);
 	}
+
+	
 }
 
 void ofApp::keyPressed(int key) 
