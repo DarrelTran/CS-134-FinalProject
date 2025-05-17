@@ -1,0 +1,17 @@
+DARREL:
+Lander model + lander modeling process video
+Lander and landing pad lights, and the single environment light 
+Lander physics + collisions + collision impulse
+Agl
+Landing pad beams
+Cameras
+Lander engine particle emitter effects/shaders
+
+JOSEPH:
+Terrain and landing pad models + modeling process video for both
+Landing pad collisions (win)
+Explosion upon hard landing (lose)
+Fuel for 2 minutes (lose when fuel is depleted)
+Sound effects for thrust and explosion
+2D background
+Trailer video
