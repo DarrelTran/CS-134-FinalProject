@@ -1,4 +1,4 @@
-Darrel:
+DARREL:
 Lander model + lander modeling process video
 Lander and landing pad lights, and the single environment light 
 Lander physics + collisions + collision impulse
@@ -7,4 +7,4 @@ Landing pad beams
 Cameras
 Particle effects/shaders
 
-Joseph:
+JOSEPH:
