@@ -5,6 +5,6 @@ Lander physics + collisions + collision impulse
 Agl
 Landing pad beams
 Cameras
-Particle effects/shaders
+Lander engine particle emitter effects/shaders
 
 JOSEPH:
